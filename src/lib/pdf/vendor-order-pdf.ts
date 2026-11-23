@@ -224,55 +224,7 @@ export function generateVendorOrderPdf(data: VendorOrderPdfData): void {
     currentY += 18;
   }
 
-  // 7. DELIVERY ACKNOWLEDGMENT & SIGNATURE CARDS (Both clean white backgrounds, neat borders)
-  const signY = Math.max(currentY + 6, 222);
-  const signBoxWidth = 86;
-  const signBoxHeight = 36;
-
-  // 7A. Left: Distributor Driver Sign-off
-  doc.setFillColor(255, 255, 255);
-  doc.setDrawColor(226, 232, 240);
-  doc.setLineWidth(0.35);
-  doc.roundedRect(16, signY, signBoxWidth, signBoxHeight, 2.5, 2.5, 'FD');
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8);
-  doc.setTextColor(100, 116, 139);
-  doc.text('DISPATCHED / DELIVERED BY', 21, signY + 6);
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  doc.setTextColor(148, 163, 184);
-  doc.text('Distributor Delivery Driver Name:', 21, signY + 12);
-  doc.line(21, signY + 22, 96, signY + 22);
-
-  doc.text('Driver Signature & Vehicle No:', 21, signY + 27);
-  doc.line(21, signY + 32, 96, signY + 32);
-
-  // 7B. Right: Store Receiver Sign-off (Clean white card, no grey fill)
-  doc.setFillColor(255, 255, 255);
-  doc.setDrawColor(226, 232, 240);
-  doc.setLineWidth(0.35);
-  doc.roundedRect(108, signY, signBoxWidth, signBoxHeight, 2.5, 2.5, 'FD');
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8);
-  doc.setTextColor(2, 132, 199);
-  doc.text('RECEIVED IN GOOD CONDITION', 113, signY + 6);
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  doc.setTextColor(148, 163, 184);
-  doc.text('Store Receiver / Manager Signature:', 113, signY + 12);
-  doc.line(113, signY + 22, 188, signY + 22);
-
-  doc.setFont('helvetica', 'italic');
-  doc.setFontSize(7.5);
-  doc.setTextColor(100, 116, 139);
-  doc.text('Stock received frozen at required temperature (-18°C)', 113, signY + 27);
-  doc.text('Date & Stamp: ________________________', 113, signY + 32);
-
-  // 8. FOOTER
+  // 7. FOOTER
   doc.setDrawColor(226, 232, 240);
   doc.setLineWidth(0.3);
   doc.line(16, 280, 194, 280);
