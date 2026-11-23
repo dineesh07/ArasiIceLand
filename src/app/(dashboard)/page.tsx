@@ -18,6 +18,8 @@ import {
   Scissors,
   Edit2,
   RefreshCw,
+  ArrowLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -110,12 +112,18 @@ export default function NewEntryPage() {
 
   // Active category filter on counter
   const [activeCategory, setActiveCategory] = useState<string>('all');
-  const [activeSubcategory, setActiveSubcategory] = useState<string>('all');
+  const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<string | null>(null);
   const [serviceSearch, setServiceSearch] = useState('');
 
   const iceCreamCategory = (categories as any[]).find((c) => c.name.toLowerCase().includes('ice'));
   const isIceCreamActive = activeCategory === iceCreamCategory?.id;
   const { data: subcategories = [] } = useSubcategories(iceCreamCategory?.id);
+  const iceCreamServices = services.filter((s) => s.category_id === iceCreamCategory?.id);
+
+  const currentSubcategory = (subcategories as any[]).find((s) => s.id === selectedSubcategoryId);
+  const currentSubcategoryName = selectedSubcategoryId === 'all'
+    ? 'All Ice Creams'
+    : currentSubcategory?.name || 'Ice Cream';
 
   // Form State
   const [customerName, setCustomerName] = useState('');
@@ -396,8 +404,9 @@ export default function NewEntryPage() {
 
     const matchesSubcategory =
       !isIceCreamActive ||
-      activeSubcategory === 'all' ||
-      s.subcategory_id === activeSubcategory;
+      selectedSubcategoryId === null ||
+      selectedSubcategoryId === 'all' ||
+      s.subcategory_id === selectedSubcategoryId;
 
     const searchTerm = serviceSearch.toLowerCase().trim();
     const fullName = formatServiceName(s.name, s.size_label).toLowerCase();
@@ -547,7 +556,8 @@ export default function NewEntryPage() {
                 type="button"
                 onClick={() => {
                   setActiveCategory('all');
-                  setActiveSubcategory('all');
+                  setSelectedSubcategoryId(null);
+                  setServiceSearch('');
                 }}
                 className={`px-4 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-colors touch-target ${
                   activeCategory === 'all'
@@ -568,7 +578,8 @@ export default function NewEntryPage() {
                         router.push('/tailoring');
                       } else {
                         setActiveCategory(c.id);
-                        setActiveSubcategory('all');
+                        setSelectedSubcategoryId(null);
+                        setServiceSearch('');
                       }
                     }}
                     className={`px-4 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-colors touch-target flex items-center gap-1.5 ${
@@ -587,49 +598,6 @@ export default function NewEntryPage() {
               })}
             </div>
 
-            {/* Ice Cream Subcategory Chips Row */}
-            {isIceCreamActive && (
-              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 pt-1 animate-in fade-in">
-                <button
-                  type="button"
-                  onClick={() => setActiveSubcategory('all')}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all touch-target ${
-                    activeSubcategory === 'all'
-                      ? 'bg-rose-600 text-white shadow-sm ring-2 ring-rose-300'
-                      : 'bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100'
-                  }`}
-                >
-                  All ({services.filter((s) => s.category_id === iceCreamCategory?.id).length})
-                </button>
-                {(subcategories as any[]).map((sub) => {
-                  const count = services.filter((s) => s.subcategory_id === sub.id).length;
-                  return (
-                    <button
-                      key={sub.id}
-                      type="button"
-                      onClick={() => setActiveSubcategory(sub.id)}
-                      className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all touch-target flex items-center gap-1.5 ${
-                        activeSubcategory === sub.id
-                          ? 'bg-rose-600 text-white shadow-sm ring-2 ring-rose-300'
-                          : 'bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100'
-                      }`}
-                    >
-                      <span>{sub.name}</span>
-                      <span
-                        className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
-                          activeSubcategory === sub.id
-                            ? 'bg-rose-700 text-rose-100'
-                            : 'bg-rose-200/80 text-rose-800'
-                        }`}
-                      >
-                        {count}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-
             <div className="relative">
               <Search className="w-4 h-4 absolute left-3.5 top-4 text-slate-400" />
               <Input
@@ -641,51 +609,181 @@ export default function NewEntryPage() {
             </div>
           </div>
 
-          {/* Service Tiles Grid */}
+          {/* Service Tiles Grid or Subcategory Cards for Ice Cream */}
           {servicesLoading ? (
             <div className="text-center py-12 text-slate-400">Loading services...</div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {filteredServices.map((srv) => (
+          ) : isIceCreamActive && !serviceSearch.trim() && selectedSubcategoryId === null ? (
+            /* Subcategory Cards Grid (Only for Ice Cream) */
+            <div className="space-y-3">
+              <div className="flex items-center justify-between px-1">
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  Select Arun Ice Creams Group
+                </span>
+                <span className="text-xs text-rose-600 font-bold bg-rose-50 border border-rose-200/60 px-2 py-0.5 rounded-full">
+                  {iceCreamServices.length} items total
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {/* All Ice Creams Card */}
                 <button
-                  key={srv.id}
                   type="button"
-                  onClick={() => addServiceToCart(srv)}
-                  className="p-3 bg-white border-2 border-slate-200 hover:border-sky-500 rounded-2xl text-left transition-all active:scale-95 shadow-xs flex flex-col justify-between min-h-[72px] touch-target group"
+                  onClick={() => setSelectedSubcategoryId('all')}
+                  className="p-3.5 bg-white border-2 border-slate-200 hover:border-rose-400 hover:shadow-md rounded-2xl text-left transition-all active:scale-95 shadow-xs flex flex-col justify-between min-h-[96px] touch-target group"
                 >
                   <div>
                     <div className="flex items-center justify-between gap-1">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block truncate">
-                        {srv.subcategory_name || srv.category_name}
+                      <span className="text-[10px] font-bold text-rose-500 uppercase tracking-wider block">
+                        Full Menu
                       </span>
-                      {srv.size_label && (
-                        <span className="text-[11px] font-semibold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded-md flex-shrink-0">
-                          {srv.size_label}
-                        </span>
-                      )}
+                      <span className="text-[11px] font-bold text-rose-700 bg-rose-50 border border-rose-200/60 px-2 py-0.5 rounded-full">
+                        {iceCreamServices.length}
+                      </span>
                     </div>
-                    <p className="font-bold text-slate-900 text-sm leading-tight mt-1 group-hover:text-sky-600">
-                      {srv.name}
+                    <p className="font-extrabold text-slate-900 text-sm leading-tight mt-1 group-hover:text-rose-600 transition-colors">
+                      All Ice Creams
                     </p>
                   </div>
 
-                  <div className="flex items-baseline justify-between mt-2 pt-1 border-t border-slate-100">
-                    <span className="text-base font-black text-slate-900 group-hover:text-sky-600">
-                      {formatINR(srv.rate)}
+                  <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100 text-xs">
+                    <span className="font-semibold text-slate-500">
+                      from {formatINR(15)}
                     </span>
-                    {srv.min_charge && (
-                      <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded">
-                        min {formatINR(srv.min_charge)}
-                      </span>
-                    )}
-                    {srv.unit_label && !srv.min_charge && (
-                      <span className="text-[10px] text-slate-400 font-semibold">
-                        /{srv.unit_label}
-                      </span>
-                    )}
+                    <span className="text-slate-400 font-bold group-hover:text-rose-600 flex items-center gap-0.5 transition-colors">
+                      <span>View All</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </span>
                   </div>
                 </button>
-              ))}
+
+                {/* Subcategory Cards */}
+                {(subcategories as any[]).map((sub) => {
+                  const subItems = iceCreamServices.filter((s) => s.subcategory_id === sub.id);
+                  const rates = subItems.map((i) => i.rate);
+                  const minRate = rates.length > 0 ? Math.min(...rates) : 0;
+                  const maxRate = rates.length > 0 ? Math.max(...rates) : 0;
+
+                  return (
+                    <button
+                      key={sub.id}
+                      type="button"
+                      onClick={() => setSelectedSubcategoryId(sub.id)}
+                      className="p-3.5 bg-white border-2 border-slate-200 hover:border-rose-400 hover:shadow-md rounded-2xl text-left transition-all active:scale-95 shadow-xs flex flex-col justify-between min-h-[96px] touch-target group"
+                    >
+                      <div>
+                        <div className="flex items-center justify-between gap-1">
+                          <span className="text-[10px] font-bold text-rose-500 uppercase tracking-wider block">
+                            Group
+                          </span>
+                          <span className="text-[11px] font-bold text-rose-700 bg-rose-50 border border-rose-200/60 px-2 py-0.5 rounded-full">
+                            {subItems.length}
+                          </span>
+                        </div>
+                        <p className="font-extrabold text-slate-900 text-sm leading-tight mt-1 group-hover:text-rose-600 transition-colors">
+                          {sub.name}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100 text-xs">
+                        <span className="font-semibold text-slate-500">
+                          {rates.length > 0
+                            ? minRate === maxRate
+                              ? formatINR(minRate)
+                              : `${formatINR(minRate)} - ${formatINR(maxRate)}`
+                            : '0 items'}
+                        </span>
+                        <span className="text-slate-400 font-bold group-hover:text-rose-600 flex items-center gap-0.5 transition-colors">
+                          <span>Open</span>
+                          <ChevronRight className="w-3.5 h-3.5" />
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            /* Product Tiles Grid */
+            <div className="space-y-3">
+              {/* Back button and group banner when viewing inside an ice cream group */}
+              {isIceCreamActive && selectedSubcategoryId !== null && !serviceSearch.trim() && (
+                <div className="flex items-center justify-between bg-rose-50/80 border border-rose-200 rounded-2xl p-2.5 px-3.5">
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedSubcategoryId(null)}
+                      className="p-1.5 px-2.5 bg-white hover:bg-rose-100 text-rose-700 rounded-xl border border-rose-200 shadow-xs transition-colors flex items-center gap-1.5 text-xs font-bold touch-target"
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                      <span>Back to Groups</span>
+                    </button>
+                    <div className="h-4 w-px bg-rose-200" />
+                    <span className="text-sm font-extrabold text-rose-950">
+                      {currentSubcategoryName}
+                    </span>
+                    <span className="text-xs font-bold text-rose-600 bg-rose-100/80 px-2 py-0.5 rounded-full">
+                      {filteredServices.length} items
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setSelectedSubcategoryId(null)}
+                    className="text-xs font-bold text-rose-700 hover:text-rose-900"
+                  >
+                    Change Group
+                  </button>
+                </div>
+              )}
+
+              {filteredServices.length === 0 ? (
+                <div className="p-8 text-center bg-white border border-slate-200 rounded-2xl text-slate-500 text-sm">
+                  No items found matching your criteria.
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {filteredServices.map((srv) => (
+                    <button
+                      key={srv.id}
+                      type="button"
+                      onClick={() => addServiceToCart(srv)}
+                      className="p-3 bg-white border-2 border-slate-200 hover:border-sky-500 rounded-2xl text-left transition-all active:scale-95 shadow-xs flex flex-col justify-between min-h-[72px] touch-target group"
+                    >
+                      <div>
+                        <div className="flex items-center justify-between gap-1">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block truncate">
+                            {srv.subcategory_name || srv.category_name}
+                          </span>
+                          {srv.size_label && (
+                            <span className="text-[11px] font-semibold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded-md flex-shrink-0">
+                              {srv.size_label}
+                            </span>
+                          )}
+                        </div>
+                        <p className="font-bold text-slate-900 text-sm leading-tight mt-1 group-hover:text-sky-600">
+                          {srv.name}
+                        </p>
+                      </div>
+
+                      <div className="flex items-baseline justify-between mt-2 pt-1 border-t border-slate-100">
+                        <span className="text-base font-black text-slate-900 group-hover:text-sky-600">
+                          {formatINR(srv.rate)}
+                        </span>
+                        {srv.min_charge && (
+                          <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded">
+                            min {formatINR(srv.min_charge)}
+                          </span>
+                        )}
+                        {srv.unit_label && !srv.min_charge && (
+                          <span className="text-[10px] text-slate-400 font-semibold">
+                            /{srv.unit_label}
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
