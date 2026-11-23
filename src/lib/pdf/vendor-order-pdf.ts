@@ -1,5 +1,6 @@
 import { jsPDF } from 'jspdf';
 import { formatISTDisplay } from '@/lib/dates';
+import { ARASI_LOGO_BASE64 } from './logo-base64';
 
 export interface VendorOrderItemData {
   product_name: string;
@@ -26,123 +27,299 @@ export function generateVendorOrderPdf(data: VendorOrderPdfData): void {
   });
 
   const formattedDate = formatISTDisplay(data.order_date);
+  const totalUnits = data.items.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
+  const totalItems = data.items.length;
 
-  // Header / Brand
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(22);
-  doc.setTextColor(2, 132, 199); // Sky 600
-  doc.text(data.shop_name || 'Arasi Iceland', 20, 24);
+  // 1. TOP ACCENT BAR (Apple Sky 600 banner)
+  doc.setFillColor(2, 132, 199);
+  doc.rect(0, 0, 210, 4, 'F');
 
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.setTextColor(100, 116, 139); // Slate 500
-  if (data.shop_phone) {
-    doc.text(`Phone: ${data.shop_phone}`, 20, 30);
+  // 2. HEADER BRANDING & LOGO
+  try {
+    if (ARASI_LOGO_BASE64) {
+      doc.addImage(ARASI_LOGO_BASE64, 'PNG', 16, 11, 18, 18);
+    }
+  } catch (err) {
+    console.warn('Could not embed logo in PDF:', err);
   }
 
-  // Order Details Box (Top Right)
+  // Store Brand Name & Info
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(16);
+  doc.setFontSize(21);
   doc.setTextColor(15, 23, 42); // Slate 900
-  doc.text(`PURCHASE ORDER #${data.order_no}`, 190, 24, { align: 'right' });
+  doc.text(data.shop_name || 'Arasi Iceland', 38, 19);
 
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.text(`Date: ${formattedDate}`, 190, 30, { align: 'right' });
+  doc.setFontSize(8.5);
+  doc.setTextColor(100, 116, 139); // Slate 500
+  doc.text('Ice Cream Parlour & Counter Point-of-Sale', 38, 24);
+  if (data.shop_phone) {
+    doc.text(`Phone: ${data.shop_phone}`, 38, 28.5);
+  }
 
-  // Divider
-  doc.setDrawColor(226, 232, 240);
-  doc.setLineWidth(0.5);
-  doc.line(20, 36, 190, 36);
+  // Right Side: Purchase Order Badge & Number
+  doc.setFillColor(240, 249, 255); // Sky 50
+  doc.setDrawColor(186, 230, 253); // Sky 200
+  doc.setLineWidth(0.3);
+  doc.roundedRect(138, 11, 56, 7.5, 2, 2, 'FD');
 
-  // Vendor Information
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8.5);
+  doc.setTextColor(2, 132, 199); // Sky 600
+  doc.text('OFFICIAL PURCHASE ORDER', 166, 16, { align: 'center' });
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(18);
+  doc.setTextColor(15, 23, 42);
+  doc.text(`#PO-${String(data.order_no).padStart(4, '0')}`, 194, 25.5, { align: 'right' });
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(100, 116, 139);
+  doc.text(`Date: ${formattedDate}`, 194, 30, { align: 'right' });
+
+  // 3. TWO INFORMATION CARDS (Buyer vs Distributor)
+  const cardY = 36;
+  const cardHeight = 25;
+
+  // 3A. Left Card: Buyer / Ordered By
+  doc.setFillColor(248, 250, 252); // Slate 50
+  doc.setDrawColor(226, 232, 240); // Slate 200
+  doc.setLineWidth(0.35);
+  doc.roundedRect(16, cardY, 86, cardHeight, 3, 3, 'FD');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7.5);
+  doc.setTextColor(100, 116, 139);
+  doc.text('ORDERED BY (BUYER)', 21, cardY + 6);
+
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(11);
   doc.setTextColor(15, 23, 42);
-  doc.text('Vendor / Distributor:', 20, 44);
+  doc.text(data.shop_name || 'Arasi Iceland', 21, cardY + 12);
 
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.setTextColor(51, 65, 85);
-  doc.text(data.vendor_name || 'Ice Cream Distributor', 20, 50);
-  if (data.vendor_phone) {
-    doc.text(`Contact: ${data.vendor_phone}`, 20, 55);
-  }
+  doc.setFontSize(8.5);
+  doc.setTextColor(71, 85, 105);
+  doc.text(data.shop_phone ? `Phone: ${data.shop_phone}` : 'Counter Retail Store', 21, cardY + 17);
+  doc.text('Dispatch Destination: Store Counter', 21, cardY + 21.5);
 
-  // Items Table Header
-  let y = 68;
-  doc.setFillColor(241, 245, 249); // Slate 100
-  doc.rect(20, y, 170, 8, 'F');
+  // 3B. Right Card: Distributor / Supplier
+  doc.setFillColor(240, 249, 255); // Sky 50
+  doc.setDrawColor(186, 230, 253); // Sky 200
+  doc.roundedRect(108, cardY, 86, cardHeight, 3, 3, 'FD');
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(10);
-  doc.setTextColor(30, 41, 59);
-  doc.text('#', 24, y + 5.5);
-  doc.text('Item Description', 40, y + 5.5);
-  doc.text('Quantity / Unit', 150, y + 5.5);
+  doc.setFontSize(7.5);
+  doc.setTextColor(2, 132, 199);
+  doc.text('DISTRIBUTOR / VENDOR', 113, cardY + 6);
 
-  y += 10;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.setTextColor(3, 105, 161);
+  doc.text(data.vendor_name || 'Arun Ice Creams Distributor', 113, cardY + 12);
+
   doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(71, 85, 105);
+  doc.text(data.vendor_phone ? `Contact: ${data.vendor_phone}` : 'Authorized Ice Cream Distributor', 113, cardY + 17);
+  doc.text('Delivery: Cold-Chain Logistics Requested', 113, cardY + 21.5);
 
-  // Table rows
+  // 4. ITEMS TABLE
+  const tableStartY = 67;
+  const tableWidth = 178;
+
+  // Header Bar (Dark Slate)
+  doc.setFillColor(15, 23, 42);
+  doc.roundedRect(16, tableStartY, tableWidth, 9, 2, 2, 'F');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8.5);
+  doc.setTextColor(255, 255, 255);
+  doc.text('#', 22, tableStartY + 6);
+  doc.text('PRODUCT / ITEM DESCRIPTION', 32, tableStartY + 6);
+  doc.text('PACKAGING / UNIT', 134, tableStartY + 6);
+  doc.text('QUANTITY', 188, tableStartY + 6, { align: 'right' });
+
+  // Rows
+  let currentY = tableStartY + 9;
+  const rowHeight = 9.5;
+
   data.items.forEach((item, index) => {
-    // Row background alternating
+    // Alternating background
     if (index % 2 === 1) {
       doc.setFillColor(248, 250, 252);
-      doc.rect(20, y - 2, 170, 8, 'F');
+      doc.rect(16, currentY, tableWidth, rowHeight, 'F');
     }
 
-    doc.setTextColor(51, 65, 85);
-    doc.text(`${index + 1}`, 24, y + 4);
-    doc.text(item.product_name, 40, y + 4);
-    const qtyText = `${item.quantity}${item.unit ? ' ' + item.unit : ''}`;
-    doc.text(qtyText, 150, y + 4);
+    // Bottom subtle divider
+    doc.setDrawColor(241, 245, 249);
+    doc.setLineWidth(0.3);
+    doc.line(16, currentY + rowHeight, 194, currentY + rowHeight);
 
-    y += 8;
+    // # index
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(148, 163, 184); // Slate 400
+    doc.text(String(index + 1), 22, currentY + 6.2);
+
+    // Product Name
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9.5);
+    doc.setTextColor(15, 23, 42);
+    doc.text(item.product_name, 32, currentY + 6.2);
+
+    // Unit pill
+    const unitLabel = item.unit || 'box';
+    doc.setFillColor(241, 245, 249);
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(0.25);
+    doc.roundedRect(132, currentY + 1.8, 22, 5.5, 1.5, 1.5, 'FD');
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(71, 85, 105);
+    doc.text(unitLabel, 143, currentY + 5.5, { align: 'center' });
+
+    // Quantity (Prominent bold Sky 700)
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.setTextColor(2, 132, 199);
+    doc.text(`${item.quantity} ${unitLabel}`, 188, currentY + 6.2, { align: 'right' });
+
+    currentY += rowHeight;
   });
 
-  // Notes
-  if (data.note) {
-    y += 10;
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(10);
-    doc.setTextColor(15, 23, 42);
-    doc.text('Special Instructions / Notes:', 20, y);
+  // Outer table boundary border
+  doc.setDrawColor(226, 232, 240);
+  doc.setLineWidth(0.35);
+  doc.roundedRect(16, tableStartY, tableWidth, currentY - tableStartY, 2, 2, 'D');
 
-    doc.setFont('helvetica', 'italic');
-    doc.setFontSize(10);
-    doc.setTextColor(71, 85, 105);
-    doc.text(data.note, 20, y + 6);
-  }
+  // 5. SUMMARY BANNER (Total items & units)
+  currentY += 4;
+  doc.setFillColor(240, 249, 255);
+  doc.setDrawColor(186, 230, 253);
+  doc.setLineWidth(0.35);
+  doc.roundedRect(16, currentY, tableWidth, 12, 2.5, 2.5, 'FD');
 
-  // Footer
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
+  doc.setTextColor(71, 85, 105);
+  doc.text(`Order Breakdown: ${totalItems} product line${totalItems === 1 ? '' : 's'}`, 22, currentY + 7.5);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.setTextColor(3, 105, 161);
+  doc.text(`TOTAL UNITS TO DISPATCH:  ${totalUnits} BOXES / UNITS`, 188, currentY + 7.5, { align: 'right' });
+
+  currentY += 16;
+
+  // 6. SPECIAL INSTRUCTIONS / NOTES CALLOUT
+  if (data.note && data.note.trim()) {
+    doc.setFillColor(254, 252, 232); // Amber 50
+    doc.setDrawColor(254, 240, 138); // Amber 200
+    doc.setLineWidth(0.35);
+    doc.roundedRect(16, currentY, tableWidth, 14, 2, 2, 'FD');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.setTextColor(180, 83, 9); // Amber 700
+    doc.text('SPECIAL INSTRUCTIONS / DELIVERY NOTE:', 22, currentY + 5);
+
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(9);
+    doc.setTextColor(69, 26, 3);
+    doc.text(`"${data.note.trim()}"`, 22, currentY + 10);
+
+    currentY += 18;
+  }
+
+  // 7. DELIVERY ACKNOWLEDGMENT & SIGNATURE CARDS (Pinned above footer)
+  const signY = Math.max(currentY + 6, 222);
+  const signBoxWidth = 86;
+  const signBoxHeight = 36;
+
+  // 7A. Left: Distributor Driver Sign-off
+  doc.setFillColor(255, 255, 255);
+  doc.setDrawColor(226, 232, 240);
+  doc.setLineWidth(0.35);
+  doc.roundedRect(16, signY, signBoxWidth, signBoxHeight, 2.5, 2.5, 'FD');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(100, 116, 139);
+  doc.text('DISPATCHED / DELIVERED BY', 21, signY + 6);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
   doc.setTextColor(148, 163, 184);
-  doc.text('Generated by Arasi Iceland Point of Sale', 20, 280);
-  doc.text(`Page 1 of 1`, 190, 280, { align: 'right' });
+  doc.text('Distributor Delivery Driver Name:', 21, signY + 12);
+  doc.line(21, signY + 22, 96, signY + 22); // line for driver name
+
+  doc.text('Driver Signature & Vehicle No:', 21, signY + 27);
+  doc.line(21, signY + 32, 96, signY + 32);
+
+  // 7B. Right: Store Receiver Sign-off
+  doc.roundedRect(108, signY, signBoxWidth, signBoxHeight, 2.5, 2.5, 'FD');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(2, 132, 199);
+  doc.text('RECEIVED IN GOOD CONDITION', 113, signY + 6);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(148, 163, 184);
+  doc.text('Store Receiver / Manager Signature:', 113, signY + 12);
+  doc.line(113, signY + 22, 188, signY + 22);
+
+  doc.setFont('helvetica', 'italic');
+  doc.setFontSize(7.5);
+  doc.setTextColor(100, 116, 139);
+  doc.text('Stock received frozen at required temperature (-18°C)', 113, signY + 27);
+  doc.text('Date & Stamp: ________________________', 113, signY + 32);
+
+  // 8. FOOTER
+  doc.setDrawColor(226, 232, 240);
+  doc.setLineWidth(0.3);
+  doc.line(16, 280, 194, 280);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(148, 163, 184);
+  doc.text('Arasi Iceland · Counter Point-of-Sale · Official Distributor Purchase Order', 16, 285);
+  doc.text('Page 1 of 1', 194, 285, { align: 'right' });
+
+  // Bottom color bar
+  doc.setFillColor(2, 132, 199);
+  doc.rect(0, 294, 210, 3, 'F');
 
   // Save PDF
-  const filename = `order-${data.order_no}-${data.order_date}.pdf`;
+  const cleanShopName = (data.shop_name || 'Arasi-Iceland').replace(/\s+/g, '-');
+  const filename = `Purchase-Order-${data.order_no}-${cleanShopName}.pdf`;
   doc.save(filename);
 }
 
 export function buildVendorWhatsAppUrl(data: VendorOrderPdfData): string {
   const formattedDate = formatISTDisplay(data.order_date);
-  let text = `Order #${data.order_no} - ${formattedDate}\n`;
+  let text = `*${data.shop_name || 'Arasi Iceland'}* - Purchase Order #${data.order_no}\n`;
+  text += `Date: ${formattedDate}\n\n`;
+  text += `*Order Items:*\n`;
   data.items.forEach((item, idx) => {
-    const unit = item.unit ? ` (${item.unit})` : '';
-    text += `${idx + 1}. ${item.product_name} x ${item.quantity}${unit}\n`;
+    const unit = item.unit ? ` (${item.unit})` : ' (box)';
+    text += `${idx + 1}. *${item.product_name}* - ${item.quantity}${unit}\n`;
   });
 
-  if (data.note) {
-    text += `Note: ${data.note}\n`;
+  const totalUnits = data.items.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
+  text += `\n*Total Packaging:* ${totalUnits} units/boxes\n`;
+
+  if (data.note && data.note.trim()) {
+    text += `Note: ${data.note.trim()}\n`;
   }
-  text += `Thank you, ${data.shop_name || 'Arasi Iceland'}`;
+  text += `\nThank you!\n${data.shop_name || 'Arasi Iceland'}`;
 
   const cleanPhone = (data.vendor_phone || '').replace(/\D/g, '');
   const internationalPhone = cleanPhone.length === 10 ? `91${cleanPhone}` : cleanPhone;
 
   return `https://wa.me/${internationalPhone}?text=${encodeURIComponent(text)}`;
 }
-
