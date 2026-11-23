@@ -26,13 +26,14 @@ export async function GET() {
     const payables = await queryOne('select get_vendor_payables() as payables');
 
     // Fetch shop & vendor settings
-    const settings = await queryOne('select shop_name, vendor_name, vendor_phone, shop_phone from settings where id = 1');
+    const settings = await queryOne('select shop_name, shop_address, vendor_name, vendor_phone, shop_phone from settings where id = 1');
 
     return NextResponse.json({
       orders,
       payables: payables?.payables || 0,
       settings: settings || {
         shop_name: 'Arasi Iceland',
+        shop_address: '',
         vendor_name: 'Distributor',
         vendor_phone: '',
       },

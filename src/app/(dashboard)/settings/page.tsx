@@ -20,6 +20,7 @@ import { Input } from '@/components/ui/input';
 
 interface SettingsData {
   shop_name: string;
+  shop_address: string | null;
   vendor_name: string | null;
   vendor_phone: string | null;
   shop_phone: string | null;
@@ -35,6 +36,7 @@ export default function SettingsPage() {
 
   const [settings, setSettings] = useState<SettingsData>({
     shop_name: 'Arasi Iceland',
+    shop_address: '',
     vendor_name: '',
     vendor_phone: '',
     shop_phone: '',
@@ -56,6 +58,7 @@ export default function SettingsPage() {
       if (setRes.settings) {
         setSettings({
           shop_name: setRes.settings.shop_name || 'Arasi Iceland',
+          shop_address: setRes.settings.shop_address || '',
           vendor_name: setRes.settings.vendor_name || '',
           vendor_phone: setRes.settings.vendor_phone || '',
           shop_phone: setRes.settings.shop_phone || '',
@@ -173,6 +176,15 @@ export default function SettingsPage() {
                 placeholder="e.g. 9840012345"
                 value={settings.shop_phone || ''}
                 onChange={(e) => setSettings({ ...settings, shop_phone: e.target.value })}
+              />
+            </div>
+
+            <div className="space-y-1 sm:col-span-2">
+              <label className="text-xs font-bold text-slate-700">Shop Address</label>
+              <Input
+                placeholder="e.g. 12/4 Bazaar Street, Opp. Bus Stand, Madurai - 625001"
+                value={settings.shop_address || ''}
+                onChange={(e) => setSettings({ ...settings, shop_address: e.target.value })}
               />
             </div>
 

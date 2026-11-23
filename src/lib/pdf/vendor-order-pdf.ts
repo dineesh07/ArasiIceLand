@@ -11,6 +11,7 @@ export interface VendorOrderItemData {
 export interface VendorOrderPdfData {
   shop_name: string;
   shop_phone?: string | null;
+  shop_address?: string | null;
   vendor_name?: string | null;
   vendor_phone?: string | null;
   order_no: number;
@@ -37,24 +38,23 @@ export function generateVendorOrderPdf(data: VendorOrderPdfData): void {
   // 2. HEADER BRANDING & LOGO
   try {
     if (ARASI_LOGO_BASE64) {
-      doc.addImage(ARASI_LOGO_BASE64, 'PNG', 16, 11, 18, 18);
+      doc.addImage(ARASI_LOGO_BASE64, 'PNG', 16, 12, 18, 18);
     }
   } catch (err) {
     console.warn('Could not embed logo in PDF:', err);
   }
 
-  // Store Brand Name & Info
+  // Store Brand Name (Clean, without the subtitle)
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(21);
+  doc.setFontSize(22);
   doc.setTextColor(15, 23, 42); // Slate 900
-  doc.text(data.shop_name || 'Arasi Iceland', 38, 19);
+  doc.text(data.shop_name || 'Arasi Iceland', 38, 21);
 
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8.5);
-  doc.setTextColor(100, 116, 139); // Slate 500
-  doc.text('Ice Cream Parlour & Counter Point-of-Sale', 38, 24);
   if (data.shop_phone) {
-    doc.text(`Phone: ${data.shop_phone}`, 38, 28.5);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9.5);
+    doc.setTextColor(100, 116, 139); // Slate 500
+    doc.text(`Phone: ${data.shop_phone}`, 38, 27);
   }
 
   // Right Side: Purchase Order Badge & Number
@@ -78,55 +78,64 @@ export function generateVendorOrderPdf(data: VendorOrderPdfData): void {
   doc.setTextColor(100, 116, 139);
   doc.text(`Date: ${formattedDate}`, 194, 30, { align: 'right' });
 
-  // 3. TWO INFORMATION CARDS (Buyer vs Distributor)
+  // 3. TWO INFORMATION CARDS (Buyer is HIGHLIGHTED with sky blue; Vendor is clean neutral)
   const cardY = 36;
-  const cardHeight = 25;
+  const cardHeight = data.shop_address ? 28 : 24;
 
-  // 3A. Left Card: Buyer / Ordered By
-  doc.setFillColor(248, 250, 252); // Slate 50
-  doc.setDrawColor(226, 232, 240); // Slate 200
-  doc.setLineWidth(0.35);
+  // 3A. Left Card: HIGHLIGHTED BUYER (Arasi Iceland)
+  doc.setFillColor(240, 249, 255); // Soft Sky 50
+  doc.setDrawColor(186, 230, 253); // Sky 200
+  doc.setLineWidth(0.4);
   doc.roundedRect(16, cardY, 86, cardHeight, 3, 3, 'FD');
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(7.5);
-  doc.setTextColor(100, 116, 139);
+  doc.setTextColor(2, 132, 199); // Sky 600
   doc.text('ORDERED BY (BUYER)', 21, cardY + 6);
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(11);
-  doc.setTextColor(15, 23, 42);
+  doc.setTextColor(12, 74, 110); // Sky 900
   doc.text(data.shop_name || 'Arasi Iceland', 21, cardY + 12);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8.5);
   doc.setTextColor(71, 85, 105);
-  doc.text(data.shop_phone ? `Phone: ${data.shop_phone}` : 'Counter Retail Store', 21, cardY + 17);
-  doc.text('Dispatch Destination: Store Counter', 21, cardY + 21.5);
+  if (data.shop_phone) {
+    doc.text(`Phone: ${data.shop_phone}`, 21, cardY + 17);
+  }
 
-  // 3B. Right Card: Distributor / Supplier
-  doc.setFillColor(240, 249, 255); // Sky 50
-  doc.setDrawColor(186, 230, 253); // Sky 200
+  if (data.shop_address && data.shop_address.trim()) {
+    doc.text(`Address: ${data.shop_address.trim()}`, 21, cardY + (data.shop_phone ? 22 : 17), {
+      maxWidth: 78,
+    });
+  }
+
+  // 3B. Right Card: NEUTRAL VENDOR / DISTRIBUTOR
+  doc.setFillColor(248, 250, 252); // Slate 50
+  doc.setDrawColor(226, 232, 240); // Slate 200
+  doc.setLineWidth(0.35);
   doc.roundedRect(108, cardY, 86, cardHeight, 3, 3, 'FD');
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(7.5);
-  doc.setTextColor(2, 132, 199);
+  doc.setTextColor(100, 116, 139); // Slate 500
   doc.text('DISTRIBUTOR / VENDOR', 113, cardY + 6);
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(11);
-  doc.setTextColor(3, 105, 161);
+  doc.setTextColor(15, 23, 42); // Slate 900
   doc.text(data.vendor_name || 'Arun Ice Creams Distributor', 113, cardY + 12);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8.5);
   doc.setTextColor(71, 85, 105);
-  doc.text(data.vendor_phone ? `Contact: ${data.vendor_phone}` : 'Authorized Ice Cream Distributor', 113, cardY + 17);
-  doc.text('Delivery: Cold-Chain Logistics Requested', 113, cardY + 21.5);
+  if (data.vendor_phone) {
+    doc.text(`Contact: ${data.vendor_phone}`, 113, cardY + 17);
+  }
 
-  // 4. ITEMS TABLE
-  const tableStartY = 67;
+  // 4. ITEMS TABLE (ONLY TWO COLUMNS: Product Description & Quantity)
+  const tableStartY = cardY + cardHeight + 6;
   const tableWidth = 178;
 
   // Header Bar (Dark Slate)
@@ -136,9 +145,7 @@ export function generateVendorOrderPdf(data: VendorOrderPdfData): void {
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8.5);
   doc.setTextColor(255, 255, 255);
-  doc.text('#', 22, tableStartY + 6);
-  doc.text('PRODUCT / ITEM DESCRIPTION', 32, tableStartY + 6);
-  doc.text('PACKAGING / UNIT', 134, tableStartY + 6);
+  doc.text('PRODUCT / ITEM DESCRIPTION', 22, tableStartY + 6);
   doc.text('QUANTITY', 188, tableStartY + 6, { align: 'right' });
 
   // Rows
@@ -157,31 +164,14 @@ export function generateVendorOrderPdf(data: VendorOrderPdfData): void {
     doc.setLineWidth(0.3);
     doc.line(16, currentY + rowHeight, 194, currentY + rowHeight);
 
-    // # index
+    // Column 1: Product Name
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
-    doc.setTextColor(148, 163, 184); // Slate 400
-    doc.text(String(index + 1), 22, currentY + 6.2);
-
-    // Product Name
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9.5);
+    doc.setFontSize(10);
     doc.setTextColor(15, 23, 42);
-    doc.text(item.product_name, 32, currentY + 6.2);
+    doc.text(item.product_name, 22, currentY + 6.2);
 
-    // Unit pill
+    // Column 2: Quantity with unit (Bold Sky 600, right aligned)
     const unitLabel = item.unit || 'box';
-    doc.setFillColor(241, 245, 249);
-    doc.setDrawColor(226, 232, 240);
-    doc.setLineWidth(0.25);
-    doc.roundedRect(132, currentY + 1.8, 22, 5.5, 1.5, 1.5, 'FD');
-
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7.5);
-    doc.setTextColor(71, 85, 105);
-    doc.text(unitLabel, 143, currentY + 5.5, { align: 'center' });
-
-    // Quantity (Prominent bold Sky 700)
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(11);
     doc.setTextColor(2, 132, 199);
@@ -234,7 +224,7 @@ export function generateVendorOrderPdf(data: VendorOrderPdfData): void {
     currentY += 18;
   }
 
-  // 7. DELIVERY ACKNOWLEDGMENT & SIGNATURE CARDS (Pinned above footer)
+  // 7. DELIVERY ACKNOWLEDGMENT & SIGNATURE CARDS (Both clean white backgrounds, neat borders)
   const signY = Math.max(currentY + 6, 222);
   const signBoxWidth = 86;
   const signBoxHeight = 36;
@@ -254,12 +244,15 @@ export function generateVendorOrderPdf(data: VendorOrderPdfData): void {
   doc.setFontSize(8);
   doc.setTextColor(148, 163, 184);
   doc.text('Distributor Delivery Driver Name:', 21, signY + 12);
-  doc.line(21, signY + 22, 96, signY + 22); // line for driver name
+  doc.line(21, signY + 22, 96, signY + 22);
 
   doc.text('Driver Signature & Vehicle No:', 21, signY + 27);
   doc.line(21, signY + 32, 96, signY + 32);
 
-  // 7B. Right: Store Receiver Sign-off
+  // 7B. Right: Store Receiver Sign-off (Clean white card, no grey fill)
+  doc.setFillColor(255, 255, 255);
+  doc.setDrawColor(226, 232, 240);
+  doc.setLineWidth(0.35);
   doc.roundedRect(108, signY, signBoxWidth, signBoxHeight, 2.5, 2.5, 'FD');
 
   doc.setFont('helvetica', 'bold');

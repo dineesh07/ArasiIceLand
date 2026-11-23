@@ -450,6 +450,7 @@ export type Database = {
         Row: {
           id: number
           shop_name: string
+          shop_address: string | null
           vendor_name: string | null
           vendor_phone: string | null
           shop_phone: string | null
@@ -459,6 +460,7 @@ export type Database = {
         Insert: {
           id?: number
           shop_name?: string
+          shop_address?: string | null
           vendor_name?: string | null
           vendor_phone?: string | null
           shop_phone?: string | null
@@ -468,6 +470,7 @@ export type Database = {
         Update: {
           id?: number
           shop_name?: string
+          shop_address?: string | null
           vendor_name?: string | null
           vendor_phone?: string | null
           shop_phone?: string | null

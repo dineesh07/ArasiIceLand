@@ -62,6 +62,7 @@ export default function VendorOrdersPage() {
   const payables = orderData?.payables ?? 0;
   const settings = orderData?.settings || {
     shop_name: 'Arasi Iceland',
+    shop_address: '',
     vendor_name: 'Arun Ice Creams Distributor',
     vendor_phone: '',
     shop_phone: '',
@@ -402,6 +403,7 @@ export default function VendorOrdersPage() {
             const pdfData = {
               shop_name: settings.shop_name,
               shop_phone: settings.shop_phone,
+              shop_address: settings.shop_address || null,
               vendor_name: settings.vendor_name,
               vendor_phone: settings.vendor_phone,
               order_no: order.order_no,
