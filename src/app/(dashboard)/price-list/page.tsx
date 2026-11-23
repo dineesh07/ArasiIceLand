@@ -670,7 +670,7 @@ export default function PriceListPage() {
                       <ChevronDown className="w-5 h-5 text-slate-500" />
                     )}
                     <h2 className="font-extrabold text-base text-slate-900">{group.name}</h2>
-                    <Badge variant="secondary" className="font-bold text-xs bg-rose-50 text-rose-700 border-rose-200">
+                    <Badge variant="secondary" className="font-bold text-xs bg-sky-50 text-sky-700 border-sky-200">
                       {group.items.length} items
                     </Badge>
                   </div>
@@ -834,13 +834,13 @@ export default function PriceListPage() {
 
           {/* Subcategory dropdown if Ice Cream */}
           {formData.category_id === iceCreamCategory?.id && (
-            <div className="space-y-1.5 bg-rose-50/50 p-3 rounded-xl border border-rose-100">
+            <div className="space-y-1.5 bg-sky-50/50 p-3 rounded-xl border border-sky-100">
               <div className="flex items-center justify-between">
-                <label className="text-sm font-bold text-rose-950">Sub-category / Group</label>
+                <label className="text-sm font-bold text-sky-950">Sub-category / Group</label>
                 <button
                   type="button"
                   onClick={() => setShowQuickAddGroup(!showQuickAddGroup)}
-                  className="text-xs font-bold text-rose-700 hover:text-rose-900 flex items-center gap-1"
+                  className="text-xs font-bold text-sky-700 hover:text-sky-900 flex items-center gap-1"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>+ New group</span>

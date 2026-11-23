@@ -403,7 +403,7 @@ export default function ReportsPage() {
           <div>
             <CardTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
               <span>Arun Ice Creams — Sales by Sub-Category</span>
-              <span className="text-xs bg-rose-50 text-rose-700 border border-rose-200 px-2 py-0.5 rounded-full font-bold">
+              <span className="text-xs bg-sky-50 text-sky-700 border border-sky-200 px-2 py-0.5 rounded-full font-bold">
                 {totalIceCreamQty} items sold
               </span>
             </CardTitle>
@@ -413,7 +413,7 @@ export default function ReportsPage() {
           </div>
           <div className="text-right">
             <span className="text-xs text-slate-400 font-semibold block">Total Ice Cream Sales</span>
-            <span className="text-lg font-black text-rose-700">{formatINR(totalIceCreamSales)}</span>
+            <span className="text-lg font-black text-sky-700">{formatINR(totalIceCreamSales)}</span>
           </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -439,7 +439,7 @@ export default function ReportsPage() {
                     return (
                       <tr key={idx} className="hover:bg-slate-50/80 transition-colors">
                         <td className="py-3 px-4 font-bold text-slate-800 flex items-center gap-2">
-                          <span className="w-2.5 h-2.5 rounded-full bg-rose-400 inline-block" />
+                          <span className="w-2.5 h-2.5 rounded-full bg-sky-500 inline-block" />
                           <span>{item.subcategory_name}</span>
                         </td>
                         <td className="py-3 px-4 text-center font-bold text-slate-700">

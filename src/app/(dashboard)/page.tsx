@@ -20,6 +20,7 @@ import {
   RefreshCw,
   ArrowLeft,
   ChevronRight,
+  X,
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -601,11 +602,27 @@ export default function NewEntryPage() {
             <div className="relative">
               <Search className="w-4 h-4 absolute left-3.5 top-4 text-slate-400" />
               <Input
-                placeholder="Search printout, ice cream, service..."
+                placeholder={
+                  isIceCreamActive
+                    ? selectedSubcategoryId
+                      ? `Search in ${currentSubcategoryName}...`
+                      : 'Search all Arun Ice Creams...'
+                    : 'Search printout, ice cream, service...'
+                }
                 value={serviceSearch}
                 onChange={(e) => setServiceSearch(e.target.value)}
-                className="pl-10 h-12 bg-white"
+                className="pl-10 pr-10 h-12 bg-white"
               />
+              {serviceSearch && (
+                <button
+                  type="button"
+                  onClick={() => setServiceSearch('')}
+                  className="absolute right-3.5 top-4 text-slate-400 hover:text-slate-600 p-0.5"
+                  title="Clear search"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
             </div>
           </div>
 
@@ -619,7 +636,7 @@ export default function NewEntryPage() {
                 <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                   Select Arun Ice Creams Group
                 </span>
-                <span className="text-xs text-rose-600 font-bold bg-rose-50 border border-rose-200/60 px-2 py-0.5 rounded-full">
+                <span className="text-xs text-sky-700 font-bold bg-sky-50 border border-sky-200 px-2.5 py-0.5 rounded-full">
                   {iceCreamServices.length} items total
                 </span>
               </div>
@@ -629,18 +646,18 @@ export default function NewEntryPage() {
                 <button
                   type="button"
                   onClick={() => setSelectedSubcategoryId('all')}
-                  className="p-3.5 bg-white border-2 border-slate-200 hover:border-rose-400 hover:shadow-md rounded-2xl text-left transition-all active:scale-95 shadow-xs flex flex-col justify-between min-h-[96px] touch-target group"
+                  className="p-3.5 bg-white border-2 border-slate-200 hover:border-sky-500 hover:shadow-md rounded-2xl text-left transition-all active:scale-95 shadow-xs flex flex-col justify-between min-h-[96px] touch-target group"
                 >
                   <div>
                     <div className="flex items-center justify-between gap-1">
-                      <span className="text-[10px] font-bold text-rose-500 uppercase tracking-wider block">
+                      <span className="text-[10px] font-bold text-sky-600 uppercase tracking-wider block">
                         Full Menu
                       </span>
-                      <span className="text-[11px] font-bold text-rose-700 bg-rose-50 border border-rose-200/60 px-2 py-0.5 rounded-full">
+                      <span className="text-[11px] font-bold text-sky-700 bg-sky-50 border border-sky-200 px-2 py-0.5 rounded-full">
                         {iceCreamServices.length}
                       </span>
                     </div>
-                    <p className="font-extrabold text-slate-900 text-sm leading-tight mt-1 group-hover:text-rose-600 transition-colors">
+                    <p className="font-extrabold text-slate-900 text-sm leading-tight mt-1 group-hover:text-sky-600 transition-colors">
                       All Ice Creams
                     </p>
                   </div>
@@ -649,7 +666,7 @@ export default function NewEntryPage() {
                     <span className="font-semibold text-slate-500">
                       from {formatINR(15)}
                     </span>
-                    <span className="text-slate-400 font-bold group-hover:text-rose-600 flex items-center gap-0.5 transition-colors">
+                    <span className="text-slate-400 font-bold group-hover:text-sky-600 flex items-center gap-0.5 transition-colors">
                       <span>View All</span>
                       <ChevronRight className="w-3.5 h-3.5" />
                     </span>
@@ -668,18 +685,18 @@ export default function NewEntryPage() {
                       key={sub.id}
                       type="button"
                       onClick={() => setSelectedSubcategoryId(sub.id)}
-                      className="p-3.5 bg-white border-2 border-slate-200 hover:border-rose-400 hover:shadow-md rounded-2xl text-left transition-all active:scale-95 shadow-xs flex flex-col justify-between min-h-[96px] touch-target group"
+                      className="p-3.5 bg-white border-2 border-slate-200 hover:border-sky-500 hover:shadow-md rounded-2xl text-left transition-all active:scale-95 shadow-xs flex flex-col justify-between min-h-[96px] touch-target group"
                     >
                       <div>
                         <div className="flex items-center justify-between gap-1">
-                          <span className="text-[10px] font-bold text-rose-500 uppercase tracking-wider block">
+                          <span className="text-[10px] font-bold text-sky-600 uppercase tracking-wider block">
                             Group
                           </span>
-                          <span className="text-[11px] font-bold text-rose-700 bg-rose-50 border border-rose-200/60 px-2 py-0.5 rounded-full">
+                          <span className="text-[11px] font-bold text-sky-700 bg-sky-50 border border-sky-200 px-2 py-0.5 rounded-full">
                             {subItems.length}
                           </span>
                         </div>
-                        <p className="font-extrabold text-slate-900 text-sm leading-tight mt-1 group-hover:text-rose-600 transition-colors">
+                        <p className="font-extrabold text-slate-900 text-base leading-tight mt-1 group-hover:text-sky-600 transition-colors">
                           {sub.name}
                         </p>
                       </div>
@@ -692,7 +709,7 @@ export default function NewEntryPage() {
                               : `${formatINR(minRate)} - ${formatINR(maxRate)}`
                             : '0 items'}
                         </span>
-                        <span className="text-slate-400 font-bold group-hover:text-rose-600 flex items-center gap-0.5 transition-colors">
+                        <span className="text-slate-400 font-bold group-hover:text-sky-600 flex items-center gap-0.5 transition-colors">
                           <span>Open</span>
                           <ChevronRight className="w-3.5 h-3.5" />
                         </span>
@@ -705,33 +722,74 @@ export default function NewEntryPage() {
           ) : (
             /* Product Tiles Grid */
             <div className="space-y-3">
-              {/* Back button and group banner when viewing inside an ice cream group */}
-              {isIceCreamActive && selectedSubcategoryId !== null && !serviceSearch.trim() && (
-                <div className="flex items-center justify-between bg-rose-50/80 border border-rose-200 rounded-2xl p-2.5 px-3.5">
+              {/* Active Subcategory Banner (Always stays visible when in a subcategory, even while searching!) */}
+              {isIceCreamActive && selectedSubcategoryId !== null && (
+                <div className="flex items-center justify-between bg-sky-50 border border-sky-200 rounded-2xl p-2.5 px-3.5">
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      onClick={() => setSelectedSubcategoryId(null)}
-                      className="p-1.5 px-2.5 bg-white hover:bg-rose-100 text-rose-700 rounded-xl border border-rose-200 shadow-xs transition-colors flex items-center gap-1.5 text-xs font-bold touch-target"
+                      onClick={() => {
+                        setSelectedSubcategoryId(null);
+                        setServiceSearch('');
+                      }}
+                      className="p-1.5 px-2.5 bg-white hover:bg-sky-100 text-sky-700 rounded-xl border border-sky-200 shadow-xs transition-colors flex items-center gap-1.5 text-xs font-bold touch-target"
                     >
                       <ArrowLeft className="w-4 h-4" />
                       <span>Back to Groups</span>
                     </button>
-                    <div className="h-4 w-px bg-rose-200" />
-                    <span className="text-sm font-extrabold text-rose-950">
+                    <div className="h-4 w-px bg-sky-200" />
+                    <span className="text-sm font-extrabold text-sky-950">
                       {currentSubcategoryName}
                     </span>
-                    <span className="text-xs font-bold text-rose-600 bg-rose-100/80 px-2 py-0.5 rounded-full">
-                      {filteredServices.length} items
+                    <span className="text-xs font-bold text-sky-700 bg-sky-100 px-2 py-0.5 rounded-full">
+                      {filteredServices.length} {serviceSearch.trim() ? 'matching' : 'items'}
                     </span>
                   </div>
 
+                  <div className="flex items-center gap-2">
+                    {serviceSearch.trim() && (
+                      <button
+                        type="button"
+                        onClick={() => setServiceSearch('')}
+                        className="text-xs font-bold text-sky-700 hover:text-sky-900 bg-white border border-sky-200 px-2 py-1 rounded-lg"
+                      >
+                        Clear search
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedSubcategoryId(null);
+                        setServiceSearch('');
+                      }}
+                      className="text-xs font-bold text-sky-700 hover:text-sky-900"
+                    >
+                      Change Group
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Banner when searching across all ice creams from main view */}
+              {isIceCreamActive && selectedSubcategoryId === null && serviceSearch.trim() && (
+                <div className="flex items-center justify-between bg-sky-50 border border-sky-200 rounded-2xl p-2.5 px-3.5">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-sky-800">
+                      Searching all Ice Creams:
+                    </span>
+                    <span className="text-xs font-extrabold text-sky-950">
+                      "{serviceSearch}"
+                    </span>
+                    <span className="text-xs font-bold text-sky-700 bg-sky-100 px-2 py-0.5 rounded-full">
+                      {filteredServices.length} found
+                    </span>
+                  </div>
                   <button
                     type="button"
-                    onClick={() => setSelectedSubcategoryId(null)}
-                    className="text-xs font-bold text-rose-700 hover:text-rose-900"
+                    onClick={() => setServiceSearch('')}
+                    className="text-xs font-bold text-sky-700 hover:text-sky-900"
                   >
-                    Change Group
+                    Clear search
                   </button>
                 </div>
               )}
