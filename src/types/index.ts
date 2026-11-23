@@ -41,7 +41,11 @@ export interface CalculateAmountParams {
 // Helper function for full display name
 export function formatServiceName(name: string, sizeLabel?: string | null): string {
   if (sizeLabel && sizeLabel.trim()) {
-    return `${name} ${sizeLabel.trim()}`;
+    const trimmed = sizeLabel.trim();
+    if (name.toLowerCase().endsWith(trimmed.toLowerCase())) {
+      return name;
+    }
+    return `${name} ${trimmed}`;
   }
   return name;
 }

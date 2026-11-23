@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   Truck,
@@ -14,6 +14,9 @@ import {
   X,
   RefreshCw,
   Package,
+  Minus,
+  Trash2,
+  Search,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,7 +25,8 @@ import { Badge } from '@/components/ui/badge';
 import { formatINR } from '@/lib/formatters';
 import { formatISTDisplay, todayIST } from '@/lib/dates';
 import { generateVendorOrderPdf, buildVendorWhatsAppUrl } from '@/lib/pdf/vendor-order-pdf';
-import { useVendorOrders, useVendorProducts } from '@/lib/api-hooks';
+import { useVendorOrders, useVendorProducts, useServices } from '@/lib/api-hooks';
+import { formatServiceName } from '@/types';
 import { CustomDatePicker } from '@/components/ui/custom-date-picker';
 import { Modal } from '@/components/ui/modal';
 
@@ -52,6 +56,7 @@ export default function VendorOrdersPage() {
 
   const { data: orderData, isLoading } = useVendorOrders();
   const { data: products = [] } = useVendorProducts();
+  const { data: services = [] } = useServices();
 
   const orders = ((orderData?.orders || []) as VendorOrder[]);
   const payables = orderData?.payables ?? 0;
@@ -62,12 +67,86 @@ export default function VendorOrdersPage() {
     shop_phone: '',
   };
 
+  // Ice cream items formatted with ml and subcategories
+  const iceCreamProducts = useMemo(() => {
+    // 1. From services (category: Ice Cream)
+    const fromServices = (services as any[])
+      .filter((s) => s.category_name === 'Ice Cream' && s.active)
+      .map((s) => ({
+        id: s.id,
+        baseName: s.name,
+        name: formatServiceName(s.name, s.size_label),
+        size_label: s.size_label || null,
+        subcategory_name: s.subcategory_name || 'Ice Cream',
+        unit: 'box',
+      }));
+
+    // 2. From vendor_products if not already represented
+    const serviceNames = new Set(fromServices.map((s) => s.name.toLowerCase()));
+    const custom = (products as any[])
+      .filter((p) => p.active && !serviceNames.has(p.name.toLowerCase()))
+      .map((p) => ({
+        id: p.id,
+        baseName: p.name,
+        name: p.name,
+        size_label: null,
+        subcategory_name: 'Custom / Other',
+        unit: p.unit || 'box',
+      }));
+
+    return [...fromServices, ...custom];
+  }, [services, products]);
+
+  // Subcategories available in order modal
+  const orderSubcategories = useMemo(() => {
+    const preferredOrder = [
+      'Bars',
+      'iBar',
+      'i-Cone',
+      'Ice Cream Shake',
+      'Cups',
+      'Tubs',
+      'Specialities',
+      'Custom / Other',
+    ];
+    const existing = new Set(iceCreamProducts.map((p) => p.subcategory_name));
+    const sorted: string[] = [];
+    preferredOrder.forEach((c) => {
+      if (existing.has(c)) sorted.push(c);
+    });
+    existing.forEach((c) => {
+      if (!sorted.includes(c)) sorted.push(c);
+    });
+    return sorted;
+  }, [iceCreamProducts]);
+
   // New Order Modal
   const [orderModalOpen, setOrderModalOpen] = useState(false);
   const [orderDate, setOrderDate] = useState(today);
   const [orderNote, setOrderNote] = useState('');
   const [cartItems, setCartItems] = useState<{ product_name: string; quantity: number; unit: string | null }[]>([]);
   const [savingOrder, setSavingOrder] = useState(false);
+  const [selectedModalSubcategory, setSelectedModalSubcategory] = useState<string>('all');
+  const [productSearch, setProductSearch] = useState('');
+
+  const filteredModalProducts = useMemo(() => {
+    return iceCreamProducts.filter((p) => {
+      const matchCategory =
+        selectedModalSubcategory === 'all' || p.subcategory_name === selectedModalSubcategory;
+      if (!matchCategory) return false;
+
+      if (!productSearch.trim()) return true;
+      const q = productSearch.toLowerCase().trim();
+      return (
+        p.name.toLowerCase().includes(q) ||
+        p.baseName.toLowerCase().includes(q) ||
+        (p.size_label && p.size_label.toLowerCase().includes(q)) ||
+        p.subcategory_name.toLowerCase().includes(q)
+      );
+    });
+  }, [iceCreamProducts, selectedModalSubcategory, productSearch]);
+
+  const totalCartUnits = cartItems.reduce((sum, item) => sum + (item.quantity || 0), 0);
 
   // Add Product Modal
   const [productModalOpen, setProductModalOpen] = useState(false);
@@ -90,10 +169,12 @@ export default function VendorOrdersPage() {
     setOrderDate(today);
     setOrderNote('');
     setCartItems([]);
+    setSelectedModalSubcategory('all');
+    setProductSearch('');
     setOrderModalOpen(true);
   };
 
-  const addProductToOrder = (prod: any) => {
+  const addProductToOrder = (prod: { name: string; size_label?: string | null; unit?: string | null; subcategory_name?: string | null }) => {
     setCartItems((prev) => {
       const existing = prev.find((i) => i.product_name === prod.name);
       if (existing) {
@@ -101,7 +182,7 @@ export default function VendorOrdersPage() {
           i.product_name === prod.name ? { ...i, quantity: i.quantity + 1 } : i
         );
       }
-      return [...prev, { product_name: prod.name, quantity: 1, unit: prod.unit }];
+      return [...prev, { product_name: prod.name, quantity: 1, unit: prod.unit || 'box' }];
     });
   };
 
@@ -113,6 +194,10 @@ export default function VendorOrdersPage() {
         prev.map((item, i) => (i === index ? { ...item, quantity: qty } : item))
       );
     }
+  };
+
+  const removeCartItem = (index: number) => {
+    setCartItems((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleCreateOrder = async (e: React.FormEvent) => {
@@ -450,7 +535,7 @@ export default function VendorOrdersPage() {
         isOpen={orderModalOpen}
         onClose={() => setOrderModalOpen(false)}
         title="New Vendor Order"
-        maxWidth="lg"
+        maxWidth="2xl"
       >
         <form onSubmit={handleCreateOrder} className="space-y-4">
           <div className="space-y-1">
@@ -462,48 +547,191 @@ export default function VendorOrdersPage() {
             />
           </div>
 
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-700">Tap Product to Add</label>
-            <div className="flex flex-wrap gap-2">
-              {(products as any[]).map((p) => (
+          {/* Product Picker Section */}
+          <div className="space-y-2.5">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+                Select Ice Cream Products to Order
+              </label>
+              <span className="text-xs font-bold text-sky-700 bg-sky-50 border border-sky-200 px-2.5 py-0.5 rounded-full">
+                {iceCreamProducts.length} items available
+              </span>
+            </div>
+
+            {/* Search Box */}
+            <div className="relative">
+              <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+              <Input
+                placeholder="Search ice cream (e.g. Vanilla, 1000 ml, Cone, Bites)..."
+                value={productSearch}
+                onChange={(e) => setProductSearch(e.target.value)}
+                className="pl-9 pr-8 h-10 bg-white text-xs font-medium"
+              />
+              {productSearch && (
                 <button
-                  key={p.id}
                   type="button"
-                  onClick={() => addProductToOrder(p)}
-                  className="px-3 py-1.5 rounded-xl border border-slate-300 bg-slate-50 hover:bg-sky-50 text-xs font-bold text-slate-800 touch-target"
+                  onClick={() => setProductSearch('')}
+                  className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 p-0.5"
+                  title="Clear search"
                 >
-                  + {p.name} {p.unit ? `(${p.unit})` : ''}
+                  <X className="w-4 h-4" />
                 </button>
-              ))}
+              )}
+            </div>
+
+            {/* Subcategory Pills */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-xs">
+              <button
+                type="button"
+                onClick={() => setSelectedModalSubcategory('all')}
+                className={`px-3 py-1 rounded-full font-bold whitespace-nowrap transition-colors touch-target ${
+                  selectedModalSubcategory === 'all'
+                    ? 'bg-sky-600 text-white shadow-xs'
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                }`}
+              >
+                All ({iceCreamProducts.length})
+              </button>
+              {orderSubcategories.map((subcat) => {
+                const count = iceCreamProducts.filter((p) => p.subcategory_name === subcat).length;
+                return (
+                  <button
+                    key={subcat}
+                    type="button"
+                    onClick={() => setSelectedModalSubcategory(subcat)}
+                    className={`px-3 py-1 rounded-full font-bold whitespace-nowrap transition-colors touch-target ${
+                      selectedModalSubcategory === subcat
+                        ? 'bg-sky-600 text-white shadow-xs'
+                        : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                    }`}
+                  >
+                    {subcat} ({count})
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Product Chips Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-56 overflow-y-auto pr-1 border border-slate-200 rounded-xl p-2 bg-slate-50/50">
+              {filteredModalProducts.length === 0 ? (
+                <div className="col-span-full py-6 text-center text-xs text-slate-400">
+                  No ice creams found matching "{productSearch}"
+                </div>
+              ) : (
+                filteredModalProducts.map((p) => {
+                  const inCart = cartItems.find((i) => i.product_name === p.name);
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => addProductToOrder(p)}
+                      className={`p-2.5 rounded-xl border text-left transition-all flex flex-col justify-between min-h-[58px] touch-target ${
+                        inCart
+                          ? 'bg-sky-50 border-sky-400 ring-1 ring-sky-300'
+                          : 'bg-white hover:bg-slate-50 border-slate-200'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-1">
+                        <span className="font-bold text-xs text-slate-900 leading-tight">
+                          {p.baseName}
+                        </span>
+                        {p.size_label && (
+                          <span className="text-[10px] font-black bg-sky-100 text-sky-800 border border-sky-300 px-1.5 py-0.5 rounded shrink-0">
+                            {p.size_label}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center justify-between mt-1.5 text-[11px]">
+                        <span className="text-slate-400 font-semibold">{p.subcategory_name}</span>
+                        {inCart ? (
+                          <span className="font-extrabold text-sky-700 bg-sky-100 px-1.5 py-0.5 rounded-md">
+                            {inCart.quantity} in order
+                          </span>
+                        ) : (
+                          <span className="font-bold text-sky-600 hover:text-sky-800">+ Add</span>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })
+              )}
             </div>
           </div>
 
+          {/* Cart Section */}
           {cartItems.length > 0 && (
-            <div className="p-3 bg-slate-50 rounded-xl space-y-2">
-              <span className="text-xs font-bold text-slate-500 uppercase">Items in Order</span>
-              {cartItems.map((item, idx) => (
-                <div key={idx} className="flex items-center justify-between text-xs">
-                  <span className="font-bold text-slate-900">{item.product_name}</span>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => updateCartQuantity(idx, item.quantity - 1)}
-                      className="w-6 h-6 rounded bg-white border font-bold"
-                    >
-                      -
-                    </button>
-                    <span className="font-bold w-6 text-center">{item.quantity}</span>
-                    <button
-                      type="button"
-                      onClick={() => updateCartQuantity(idx, item.quantity + 1)}
-                      className="w-6 h-6 rounded bg-white border font-bold"
-                    >
-                      +
-                    </button>
-                    <span className="text-slate-500">{item.unit || ''}</span>
-                  </div>
+            <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+                    Items in Order
+                  </span>
+                  <span className="text-xs font-black text-sky-700 bg-sky-100 border border-sky-200 px-2 py-0.5 rounded-full">
+                    {cartItems.length} {cartItems.length === 1 ? 'item' : 'items'} · {totalCartUnits} units
+                  </span>
                 </div>
-              ))}
+                <button
+                  type="button"
+                  onClick={() => setCartItems([])}
+                  className="text-xs font-bold text-red-500 hover:text-red-700"
+                >
+                  Clear All
+                </button>
+              </div>
+
+              <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                {cartItems.map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between gap-2 p-2 bg-white border border-slate-200 rounded-xl"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="font-bold text-slate-900 text-xs truncate">
+                        {item.product_name}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => updateCartQuantity(idx, item.quantity - 1)}
+                        className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-300 font-bold flex items-center justify-center text-slate-700"
+                      >
+                        <Minus className="w-3.5 h-3.5" />
+                      </button>
+
+                      <input
+                        type="number"
+                        min="1"
+                        value={item.quantity}
+                        onChange={(e) => updateCartQuantity(idx, parseInt(e.target.value) || 0)}
+                        className="w-12 h-7 text-center font-black text-xs bg-white border border-slate-300 rounded-lg"
+                      />
+
+                      <button
+                        type="button"
+                        onClick={() => updateCartQuantity(idx, item.quantity + 1)}
+                        className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-300 font-bold flex items-center justify-center text-slate-700"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                      </button>
+
+                      <span className="text-xs font-semibold text-slate-500 w-8 text-center">
+                        {item.unit || 'box'}
+                      </span>
+
+                      <button
+                        type="button"
+                        onClick={() => removeCartItem(idx)}
+                        className="p-1 text-slate-400 hover:text-red-500 rounded"
+                        title="Remove product"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
@@ -520,8 +748,8 @@ export default function VendorOrdersPage() {
             <Button type="button" variant="outline" onClick={() => setOrderModalOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={savingOrder} className="font-bold">
-              {savingOrder ? 'Creating...' : 'Save Order'}
+            <Button type="submit" disabled={savingOrder || cartItems.length === 0} className="font-bold">
+              {savingOrder ? 'Creating...' : `Save Order (${totalCartUnits} units)`}
             </Button>
           </div>
         </form>

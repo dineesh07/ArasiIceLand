@@ -10,9 +10,19 @@ describe('Arun Ice Creams Logic & Display Names', () => {
   });
 
   it('formats display name with size label according to specification rule', () => {
+    // i-Cone
     expect(formatServiceName('Double Chocolate', '100 ml')).toBe('Double Chocolate 100 ml');
+    expect(formatServiceName('Vanilla', '50 ml')).toBe('Vanilla 50 ml');
+    // Cups
     expect(formatServiceName('Vanilla Cup', '85 ml')).toBe('Vanilla Cup 85 ml');
+    expect(formatServiceName('Vanilla Cup', '60 ml')).toBe('Vanilla Cup 60 ml');
+    expect(formatServiceName('Mango Cup', '125 ml')).toBe('Mango Cup 125 ml');
+    // Tubs
     expect(formatServiceName('Almond Crisp', '1000 ml')).toBe('Almond Crisp 1000 ml');
+    expect(formatServiceName('Butterscotch', '500 ml')).toBe('Butterscotch 500 ml');
+    expect(formatServiceName('Vanilla', '250 ml')).toBe('Vanilla 250 ml');
+    // Prevents duplicate suffix
+    expect(formatServiceName('Vanilla Cup 85 ml', '85 ml')).toBe('Vanilla Cup 85 ml');
   });
 
   it('calculates fixed price items accurately for quantities', () => {
