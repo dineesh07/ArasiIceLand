@@ -31,14 +31,14 @@ const sfPro = localFont({
 });
 
 export const metadata: Metadata = {
-  title: 'Shop Manager',
-  description: 'Point of sale and shop management app for internet centre, ice cream, and tailoring.',
+  title: 'Arasi Iceland',
+  description: 'Point of sale and shop management app for internet centre, ice cream, and tailoring - Arasi Iceland.',
   manifest: '/manifest.json',
   icons: {
     icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
       { url: '/favicon.ico', sizes: 'any' },
-      { url: '/favicon.png', type: 'image/png', sizes: '32x32' },
-      { url: '/icon.png', type: 'image/png', sizes: '192x192' },
+      { url: '/favicon.png', type: 'image/png' },
     ],
     apple: [
       { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'Shop Manager',
+    title: 'Arasi Iceland',
   },
 };
 

@@ -32,7 +32,7 @@ export async function GET() {
       orders,
       payables: payables?.payables || 0,
       settings: settings || {
-        shop_name: 'Shop Manager',
+        shop_name: 'Arasi Iceland',
         vendor_name: 'Distributor',
         vendor_phone: '',
       },
@@ -51,22 +51,32 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Order must contain at least one product item' }, { status: 400 });
     }
 
+    const finalDate = (order_date && typeof order_date === 'string' && order_date.trim())
+      ? order_date.trim()
+      : todayIST();
+
     const order = await queryOne(`
       insert into vendor_orders (order_date, status, note)
-      values (coalesce($1, $2), 'ordered', $3)
+      values ($1, 'ordered', $2)
       returning *
-    `, [order_date || null, todayIST(), note ? note.trim() : null]);
+    `, [finalDate, note && note.trim() ? note.trim() : null]);
+
+    if (!order) {
+      return NextResponse.json({ error: 'Failed to create order record' }, { status: 500 });
+    }
 
     for (const item of items) {
+      const qty = parseFloat(item.quantity) || 1;
       await query(`
         insert into vendor_order_items (order_id, product_name, quantity, unit)
         values ($1, $2, $3, $4)
-      `, [order.id, item.product_name, parseFloat(item.quantity), item.unit || null]);
+      `, [order.id, item.product_name, qty, item.unit || null]);
     }
 
     return NextResponse.json({ order }, { status: 201 });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('Vendor order creation error:', error);
+    return NextResponse.json({ error: error.message || 'Server error creating order' }, { status: 500 });
   }
 }
 

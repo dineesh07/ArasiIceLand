@@ -56,7 +56,7 @@ export default function LoginPage() {
           <div className="inline-flex w-20 h-20 shrink-0">
             <Image
               src="/logo.png"
-              alt="Shop Manager"
+              alt="Arasi Iceland"
               width={80}
               height={80}
               className="w-full h-full drop-shadow-md"
@@ -64,7 +64,7 @@ export default function LoginPage() {
             />
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            Shop Manager
+            Arasi Iceland
           </h1>
           <p className="text-sm sm:text-base text-slate-600 font-medium">
             Internet Centre · Ice Cream · Tailoring

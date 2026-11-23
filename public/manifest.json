@@ -1,7 +1,7 @@
 {
-  "name": "Shop Manager",
-  "short_name": "ShopManager",
-  "description": "Counter Point of Sale for Internet Centre, Ice Cream, and Tailoring",
+  "name": "Arasi Iceland",
+  "short_name": "Arasi Iceland",
+  "description": "Counter Point of Sale for Internet Centre, Ice Cream, and Tailoring - Arasi Iceland",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f8fafc",

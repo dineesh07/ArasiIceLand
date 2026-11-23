@@ -61,7 +61,7 @@ export default function VendorOrdersPage() {
   const orders = ((orderData?.orders || []) as VendorOrder[]);
   const payables = orderData?.payables ?? 0;
   const settings = orderData?.settings || {
-    shop_name: 'Shop Manager',
+    shop_name: 'Arasi Iceland',
     vendor_name: 'Arun Ice Creams Distributor',
     vendor_phone: '',
     shop_phone: '',
@@ -200,8 +200,8 @@ export default function VendorOrdersPage() {
     setCartItems((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleCreateOrder = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleCreateOrder = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (cartItems.length === 0) {
       alert('Please add at least one product to the order');
       return;
@@ -213,7 +213,7 @@ export default function VendorOrdersPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          order_date: orderDate,
+          order_date: orderDate || today,
           note: orderNote,
           items: cartItems,
         }),
@@ -221,10 +221,15 @@ export default function VendorOrdersPage() {
 
       if (res.ok) {
         setOrderModalOpen(false);
+        setCartItems([]);
+        setOrderNote('');
         queryClient.invalidateQueries({ queryKey: ['vendor-orders'] });
+      } else {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || `Failed to create order (HTTP ${res.status})`);
       }
-    } catch {
-      alert('Failed to create order');
+    } catch (err: any) {
+      alert('Failed to create order: ' + (err?.message || 'Network error'));
     } finally {
       setSavingOrder(false);
     }
@@ -535,222 +540,234 @@ export default function VendorOrdersPage() {
         isOpen={orderModalOpen}
         onClose={() => setOrderModalOpen(false)}
         title="New Vendor Order"
-        maxWidth="2xl"
+        maxWidth="4xl"
       >
-        <form onSubmit={handleCreateOrder} className="space-y-4">
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-slate-700">Order Date</label>
-            <CustomDatePicker
-              required
-              value={orderDate}
-              onChange={(val) => setOrderDate(val)}
-            />
-          </div>
+        {/* Tall 2-column layout: left=product picker (scrollable), right=cart (scrollable), footer pinned */}
+        <form onSubmit={handleCreateOrder} noValidate className="flex flex-col flex-1 overflow-hidden">
 
-          {/* Product Picker Section */}
-          <div className="space-y-2.5">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
-                Select Ice Cream Products to Order
-              </label>
-              <span className="text-xs font-bold text-sky-700 bg-sky-50 border border-sky-200 px-2.5 py-0.5 rounded-full">
+          {/* ── TOP STRIP: date + summary badges ── */}
+          <div className="flex items-center gap-4 pb-4 border-b border-slate-100 shrink-0">
+            <div className="space-y-1 w-56">
+              <label className="text-xs font-bold text-slate-700">Order Date</label>
+              <CustomDatePicker
+                required
+                value={orderDate}
+                onChange={(val) => setOrderDate(val)}
+              />
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs font-bold text-sky-700 bg-sky-50 border border-sky-200 px-2.5 py-1 rounded-full">
                 {iceCreamProducts.length} items available
               </span>
-            </div>
-
-            {/* Search Box */}
-            <div className="relative">
-              <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
-              <Input
-                placeholder="Search ice cream (e.g. Vanilla, 1000 ml, Cone, Bites)..."
-                value={productSearch}
-                onChange={(e) => setProductSearch(e.target.value)}
-                className="pl-9 pr-8 h-10 bg-white text-xs font-medium"
-              />
-              {productSearch && (
-                <button
-                  type="button"
-                  onClick={() => setProductSearch('')}
-                  className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 p-0.5"
-                  title="Clear search"
-                >
-                  <X className="w-4 h-4" />
-                </button>
+              {cartItems.length > 0 && (
+                <span className="text-xs font-black text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
+                  {cartItems.length} selected · {totalCartUnits} units
+                </span>
               )}
             </div>
+          </div>
 
-            {/* Subcategory Pills */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-xs">
-              <button
-                type="button"
-                onClick={() => setSelectedModalSubcategory('all')}
-                className={`px-3 py-1 rounded-full font-bold whitespace-nowrap transition-colors touch-target ${
-                  selectedModalSubcategory === 'all'
-                    ? 'bg-sky-600 text-white shadow-xs'
-                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-                }`}
-              >
-                All ({iceCreamProducts.length})
-              </button>
-              {orderSubcategories.map((subcat) => {
-                const count = iceCreamProducts.filter((p) => p.subcategory_name === subcat).length;
-                return (
+          {/* ── BODY: 2-column ── */}
+          <div className="flex flex-col lg:flex-row gap-5 overflow-hidden flex-1 mt-4">
+
+            {/* LEFT COLUMN: product picker */}
+            <div className="flex flex-col lg:w-3/5 space-y-2.5 overflow-hidden">
+              {/* Search */}
+              <div className="relative shrink-0">
+                <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+                <Input
+                  placeholder="Search (e.g. Vanilla, 1000 ml, Cone, Bites)..."
+                  value={productSearch}
+                  onChange={(e) => setProductSearch(e.target.value)}
+                  className="pl-9 pr-8 h-10 bg-white text-xs font-medium"
+                />
+                {productSearch && (
+                  <button
+                    type="button"
+                    onClick={() => setProductSearch('')}
+                    className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 p-0.5"
+                    title="Clear search"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+
+              {/* Category pills */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-xs shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setSelectedModalSubcategory('all')}
+                  className={`px-3 py-1.5 rounded-full font-bold whitespace-nowrap transition-colors ${
+                    selectedModalSubcategory === 'all'
+                      ? 'bg-sky-600 text-white'
+                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                  }`}
+                >
+                  All ({iceCreamProducts.length})
+                </button>
+                {orderSubcategories.map((subcat) => (
                   <button
                     key={subcat}
                     type="button"
                     onClick={() => setSelectedModalSubcategory(subcat)}
-                    className={`px-3 py-1 rounded-full font-bold whitespace-nowrap transition-colors touch-target ${
+                    className={`px-3 py-1.5 rounded-full font-bold whitespace-nowrap transition-colors ${
                       selectedModalSubcategory === subcat
-                        ? 'bg-sky-600 text-white shadow-xs'
+                        ? 'bg-sky-600 text-white'
                         : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                     }`}
                   >
-                    {subcat} ({count})
+                    {subcat} ({iceCreamProducts.filter((p) => p.subcategory_name === subcat).length})
                   </button>
-                );
-              })}
-            </div>
-
-            {/* Product Chips Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-56 overflow-y-auto pr-1 border border-slate-200 rounded-xl p-2 bg-slate-50/50">
-              {filteredModalProducts.length === 0 ? (
-                <div className="col-span-full py-6 text-center text-xs text-slate-400">
-                  No ice creams found matching "{productSearch}"
-                </div>
-              ) : (
-                filteredModalProducts.map((p) => {
-                  const inCart = cartItems.find((i) => i.product_name === p.name);
-                  return (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => addProductToOrder(p)}
-                      className={`p-2.5 rounded-xl border text-left transition-all flex flex-col justify-between min-h-[58px] touch-target ${
-                        inCart
-                          ? 'bg-sky-50 border-sky-400 ring-1 ring-sky-300'
-                          : 'bg-white hover:bg-slate-50 border-slate-200'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-1">
-                        <span className="font-bold text-xs text-slate-900 leading-tight">
-                          {p.baseName}
-                        </span>
-                        {p.size_label && (
-                          <span className="text-[10px] font-black bg-sky-100 text-sky-800 border border-sky-300 px-1.5 py-0.5 rounded shrink-0">
-                            {p.size_label}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center justify-between mt-1.5 text-[11px]">
-                        <span className="text-slate-400 font-semibold">{p.subcategory_name}</span>
-                        {inCart ? (
-                          <span className="font-extrabold text-sky-700 bg-sky-100 px-1.5 py-0.5 rounded-md">
-                            {inCart.quantity} in order
-                          </span>
-                        ) : (
-                          <span className="font-bold text-sky-600 hover:text-sky-800">+ Add</span>
-                        )}
-                      </div>
-                    </button>
-                  );
-                })
-              )}
-            </div>
-          </div>
-
-          {/* Cart Section */}
-          {cartItems.length > 0 && (
-            <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2.5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">
-                    Items in Order
-                  </span>
-                  <span className="text-xs font-black text-sky-700 bg-sky-100 border border-sky-200 px-2 py-0.5 rounded-full">
-                    {cartItems.length} {cartItems.length === 1 ? 'item' : 'items'} · {totalCartUnits} units
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setCartItems([])}
-                  className="text-xs font-bold text-red-500 hover:text-red-700"
-                >
-                  Clear All
-                </button>
-              </div>
-
-              <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
-                {cartItems.map((item, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-center justify-between gap-2 p-2 bg-white border border-slate-200 rounded-xl"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <p className="font-bold text-slate-900 text-xs truncate">
-                        {item.product_name}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => updateCartQuantity(idx, item.quantity - 1)}
-                        className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-300 font-bold flex items-center justify-center text-slate-700"
-                      >
-                        <Minus className="w-3.5 h-3.5" />
-                      </button>
-
-                      <input
-                        type="number"
-                        min="1"
-                        value={item.quantity}
-                        onChange={(e) => updateCartQuantity(idx, parseInt(e.target.value) || 0)}
-                        className="w-12 h-7 text-center font-black text-xs bg-white border border-slate-300 rounded-lg"
-                      />
-
-                      <button
-                        type="button"
-                        onClick={() => updateCartQuantity(idx, item.quantity + 1)}
-                        className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-300 font-bold flex items-center justify-center text-slate-700"
-                      >
-                        <Plus className="w-3.5 h-3.5" />
-                      </button>
-
-                      <span className="text-xs font-semibold text-slate-500 w-8 text-center">
-                        {item.unit || 'box'}
-                      </span>
-
-                      <button
-                        type="button"
-                        onClick={() => removeCartItem(idx)}
-                        className="p-1 text-slate-400 hover:text-red-500 rounded"
-                        title="Remove product"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
                 ))}
               </div>
-            </div>
-          )}
 
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-slate-700">Special Notes / Request</label>
-            <Input
-              placeholder="e.g. Please deliver before 2 PM"
-              value={orderNote}
-              onChange={(e) => setOrderNote(e.target.value)}
-            />
+              {/* Scrollable product grid */}
+              <div className="overflow-y-auto flex-1 pr-1">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 content-start">
+                  {filteredModalProducts.length === 0 ? (
+                    <div className="col-span-full py-10 text-center text-xs text-slate-400">
+                      No items found for &quot;{productSearch}&quot;
+                    </div>
+                  ) : (
+                    filteredModalProducts.map((p) => {
+                      const inCart = cartItems.find((i) => i.product_name === p.name);
+                      return (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => addProductToOrder(p)}
+                          className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between min-h-[72px] active:scale-95 ${
+                            inCart
+                              ? 'bg-sky-50 border-sky-400 ring-2 ring-sky-200 shadow-sm'
+                              : 'bg-white hover:bg-slate-50 border-slate-200 hover:border-sky-300 hover:shadow-sm'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-1">
+                            <span className="font-bold text-sm text-slate-900 leading-tight">{p.baseName}</span>
+                            {p.size_label && (
+                              <span className="text-[10px] font-black bg-sky-100 text-sky-800 border border-sky-300 px-1.5 py-0.5 rounded shrink-0 mt-0.5">
+                                {p.size_label}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center justify-between mt-2 text-xs">
+                            <span className="text-slate-400 font-medium">{p.subcategory_name}</span>
+                            {inCart ? (
+                              <span className="font-extrabold text-sky-700 bg-sky-100 px-2 py-0.5 rounded-lg">
+                                ✓ {inCart.quantity}
+                              </span>
+                            ) : (
+                              <span className="font-bold text-sky-500">+ Add</span>
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* RIGHT COLUMN: cart + notes */}
+            <div className="flex flex-col lg:w-2/5 space-y-3 overflow-hidden">
+              <div className="flex items-center justify-between shrink-0">
+                <div className="flex items-center gap-2">
+                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Items in Order</label>
+                  {cartItems.length > 0 && (
+                    <span className="text-xs font-black text-sky-700 bg-sky-100 border border-sky-200 px-2 py-0.5 rounded-full">
+                      {cartItems.length} · {totalCartUnits} units
+                    </span>
+                  )}
+                </div>
+                {cartItems.length > 0 && (
+                  <button type="button" onClick={() => setCartItems([])} className="text-xs font-bold text-red-500 hover:text-red-700">
+                    Clear All
+                  </button>
+                )}
+              </div>
+
+              {cartItems.length === 0 ? (
+                <div className="flex-1 flex flex-col items-center justify-center text-slate-300 border-2 border-dashed border-slate-200 rounded-2xl">
+                  <Package className="w-10 h-10 mb-2" />
+                  <p className="text-xs font-semibold text-slate-400 text-center px-4">
+                    Tap a product on the left to add it here
+                  </p>
+                </div>
+              ) : (
+                <div className="flex-1 overflow-y-auto space-y-1.5 pr-1">
+                  {cartItems.map((item, idx) => (
+                    <div key={idx} className="flex items-center justify-between gap-2 p-2.5 bg-white border border-slate-200 rounded-xl">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-bold text-slate-900 text-xs leading-tight">{item.product_name}</p>
+                        <p className="text-[10px] text-slate-400 mt-0.5">{item.unit || 'box'}</p>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => updateCartQuantity(idx, item.quantity - 1)}
+                          className="w-7 h-7 rounded-lg bg-slate-100 border border-slate-200 font-bold flex items-center justify-center text-slate-600"
+                        >
+                          <Minus className="w-3 h-3" />
+                        </button>
+                        <input
+                          type="number"
+                          min="1"
+                          value={item.quantity}
+                          onChange={(e) => updateCartQuantity(idx, parseInt(e.target.value) || 0)}
+                          className="w-10 h-7 text-center font-black text-xs bg-white border border-slate-300 rounded-lg focus:border-sky-400 focus:outline-none"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => updateCartQuantity(idx, item.quantity + 1)}
+                          className="w-7 h-7 rounded-lg bg-sky-50 border border-sky-200 font-bold flex items-center justify-center text-sky-700"
+                        >
+                          <Plus className="w-3 h-3" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => removeCartItem(idx)}
+                          className="w-6 h-6 flex items-center justify-center text-slate-300 hover:text-red-500 rounded ml-0.5"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="space-y-1 shrink-0">
+                <label className="text-xs font-bold text-slate-700">Notes / Instructions</label>
+                <Input
+                  placeholder="e.g. Deliver before 2 PM"
+                  value={orderNote}
+                  onChange={(e) => setOrderNote(e.target.value)}
+                />
+              </div>
+            </div>
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-3 border-t">
-            <Button type="button" variant="outline" onClick={() => setOrderModalOpen(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={savingOrder || cartItems.length === 0} className="font-bold">
-              {savingOrder ? 'Creating...' : `Save Order (${totalCartUnits} units)`}
-            </Button>
+          {/* ── FOOTER: always pinned ── */}
+          <div className="flex items-center justify-between gap-3 pt-4 mt-4 border-t border-slate-100 shrink-0">
+            <p className="text-xs text-slate-400">
+              {cartItems.length === 0
+                ? 'Select at least one product to place the order'
+                : `${cartItems.length} products · ${totalCartUnits} boxes/units`}
+            </p>
+            <div className="flex items-center gap-2">
+              <Button type="button" variant="outline" onClick={() => setOrderModalOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={savingOrder || cartItems.length === 0}
+                onClick={(e) => handleCreateOrder(e)}
+                className="font-bold bg-sky-600 hover:bg-sky-700 text-white px-6"
+              >
+                {savingOrder ? 'Placing Order...' : `Place Order (${totalCartUnits} units)`}
+              </Button>
+            </div>
           </div>
         </form>
       </Modal>

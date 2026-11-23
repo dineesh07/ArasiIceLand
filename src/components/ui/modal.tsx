@@ -9,7 +9,7 @@ export interface ModalProps {
   onClose: () => void;
   title?: React.ReactNode;
   description?: string;
-  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | 'full';
   children: React.ReactNode;
   showCloseButton?: boolean;
   className?: string;
@@ -21,6 +21,9 @@ const maxWidthClassMap = {
   lg: 'max-w-lg',
   xl: 'max-w-xl',
   '2xl': 'max-w-2xl',
+  '3xl': 'max-w-3xl',
+  '4xl': 'max-w-4xl',
+  full: 'max-w-full',
 };
 
 export function Modal({
@@ -94,11 +97,11 @@ export function Modal({
 
       {/* Modal Card */}
       <div
-        className={`relative z-10 bg-white rounded-3xl shadow-2xl border border-slate-100 p-6 w-full ${maxWidthClassMap[maxWidth]} my-auto max-h-[90vh] overflow-y-auto transition-all duration-200 ease-out ${className}`}
+        className={`relative z-10 bg-white rounded-3xl shadow-2xl border border-slate-100 p-6 w-full ${maxWidthClassMap[maxWidth]} my-auto max-h-[92vh] flex flex-col transition-all duration-200 ease-out ${className}`}
         onClick={(e) => e.stopPropagation()}
       >
         {(title || showCloseButton) && (
-          <div className="flex items-start justify-between border-b border-slate-100 pb-3.5 mb-4 gap-3">
+          <div className="flex items-start justify-between border-b border-slate-100 pb-3.5 mb-4 gap-3 shrink-0">
             <div>
               {typeof title === 'string' ? (
                 <h2 className="text-xl font-bold text-slate-900 tracking-tight">{title}</h2>
@@ -122,7 +125,7 @@ export function Modal({
           </div>
         )}
 
-        {children}
+        <div className="flex-1 min-h-0 flex flex-col overflow-y-auto">{children}</div>
       </div>
     </div>,
     document.body

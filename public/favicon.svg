@@ -1,0 +1,142 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <!-- Background Gradient: Light Cyan to Deep Royal Blue -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="35%" stop-color="#0ea5e9" />
+      <stop offset="70%" stop-color="#0284c7" />
+      <stop offset="100%" stop-color="#1e40af" />
+    </linearGradient>
+
+    <!-- Glossy Specular Highlight -->
+    <linearGradient id="glossGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.5" />
+      <stop offset="30%" stop-color="#ffffff" stop-opacity="0.1" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+    </linearGradient>
+
+    <!-- Letter 3D Depth / Shading -->
+    <linearGradient id="letterGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#f1f5f9" />
+    </linearGradient>
+
+    <!-- Ice Cream Scoop Gradient -->
+    <linearGradient id="scoopGrad" x1="20%" y1="0%" x2="80%" y2="100%">
+      <stop offset="0%" stop-color="#fffbeb" />
+      <stop offset="45%" stop-color="#fef3c7" />
+      <stop offset="100%" stop-color="#fde68a" />
+    </linearGradient>
+
+    <!-- Dropshadow filter for letter and ice cream -->
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#0f172a" flood-opacity="0.4" />
+    </filter>
+
+    <filter id="innerDepth" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#0284c7" flood-opacity="0.35" />
+    </filter>
+
+    <!-- Apple Squircle Clip -->
+    <clipPath id="squircleClip">
+      <path d="M 0,512 C 0,160 160,0 512,0 C 864,0 1024,160 1024,512 C 1024,864 864,1024 512,1024 C 160,1024 0,864 0,512 Z" />
+    </clipPath>
+  </defs>
+
+  <!-- 1. SQUIRCLE BODY (True Transparent Background Outside) -->
+  <g clip-path="url(#squircleClip)">
+    <rect width="1024" height="1024" fill="url(#bgGrad)" />
+
+    <!-- Soft radial ambient lighting in top-center -->
+    <circle cx="512" cy="180" r="450" fill="#ffffff" opacity="0.22" />
+
+    <!-- Top glossy Apple glass sheen -->
+    <ellipse cx="512" cy="100" rx="460" ry="240" fill="url(#glossGrad)" />
+
+    <!-- 2. MAIN LOGO MARK: THE BOLD 'A' + ICE CREAM DOLLOP -->
+    <g filter="url(#softShadow)">
+      
+      <!-- Bold Apple-style 'A' glyph -->
+      <!-- Left leg, right leg, apex, and crossbar smoothly merged -->
+      <path d="
+        M 512,230
+        L 690,740
+        A 36,36 0 0,1 656,785
+        L 598,785
+        A 32,32 0 0,1 568,761
+        L 535,660
+        L 489,660
+        L 456,761
+        A 32,32 0 0,1 426,785
+        L 368,785
+        A 36,36 0 0,1 334,740
+        L 512,230 Z
+        
+        M 512,390
+        L 472,580
+        L 552,580
+        Z
+      "
+      fill-rule="evenodd"
+      fill="url(#letterGrad)"
+      />
+
+      <!-- Soft 3D bevel / reflection inside the A -->
+      <path d="
+        M 512,250
+        L 668,710
+        L 590,710
+        L 538,550
+        L 486,550
+        L 434,710
+        L 356,710
+        Z
+        M 512,410
+        L 485,530
+        L 539,530
+        Z
+      "
+      fill-rule="evenodd"
+      fill="#ffffff"
+      opacity="0.4"
+      />
+
+      <!-- 3. ICE CREAM SCOOP DOLLOP SITTING ATOP THE 'A' -->
+      <g filter="url(#innerDepth)">
+        <!-- Main ice cream scoop dome -->
+        <ellipse cx="512" cy="235" rx="145" ry="125" fill="url(#scoopGrad)" />
+
+        <!-- Creamy melting drips / scallops along the bottom of the scoop -->
+        <path d="
+          M 372,250
+          C 370,285 395,305 422,295
+          C 440,325 470,335 495,300
+          C 505,340 540,345 558,300
+          C 580,330 615,315 628,285
+          C 645,290 655,270 652,250
+          Z
+        "
+        fill="url(#scoopGrad)" />
+
+        <!-- Soft 3D scoop highlight sheen -->
+        <ellipse cx="485" cy="185" rx="75" ry="45" fill="#ffffff" opacity="0.6" transform="rotate(-15 485 185)" />
+
+        <!-- Cute colorful sprinkles -->
+        <!-- Strawberry Pink sprinkle -->
+        <rect x="440" y="195" width="28" height="10" rx="5" fill="#f43f5e" transform="rotate(-25 440 195)" />
+        <!-- Sky Blue sprinkle -->
+        <rect x="525" y="175" width="28" height="10" rx="5" fill="#0284c7" transform="rotate(35 525 175)" />
+        <!-- Pistachio Green sprinkle -->
+        <rect x="480" y="235" width="26" height="9" rx="4.5" fill="#10b981" transform="rotate(15 480 235)" />
+        <!-- Mango Gold sprinkle -->
+        <rect x="555" y="220" width="26" height="9" rx="4.5" fill="#f59e0b" transform="rotate(-40 555 220)" />
+        <!-- Purple Violet sprinkle -->
+        <rect x="420" y="240" width="24" height="8" rx="4" fill="#8b5cf6" transform="rotate(45 420 240)" />
+      </g>
+    </g>
+
+    <!-- Subtle inner border rim highlight around the squircle (Apple-style) -->
+    <path d="M 0,512 C 0,160 160,0 512,0 C 864,0 1024,160 1024,512 C 1024,864 864,1024 512,1024 C 160,1024 0,864 0,512 Z"
+          fill="none" stroke="#ffffff" stroke-width="4" stroke-opacity="0.3" />
+  </g>
+</svg>

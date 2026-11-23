@@ -7,7 +7,7 @@ export async function GET() {
     if (!settings) {
       settings = await queryOne(`
         insert into settings (id, shop_name)
-        values (1, 'Shop Manager')
+        values (1, 'Arasi Iceland')
         returning *
       `);
     }

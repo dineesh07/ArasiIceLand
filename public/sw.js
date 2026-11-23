@@ -1,5 +1,5 @@
-// Minimal PWA Service Worker for Shop Manager
-const CACHE_NAME = 'shop-manager-v1';
+// Minimal PWA Service Worker for Arasi Iceland
+const CACHE_NAME = 'arasi-iceland-v2';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
