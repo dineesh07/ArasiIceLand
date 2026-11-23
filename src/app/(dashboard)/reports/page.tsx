@@ -86,6 +86,10 @@ export default function ReportsPage() {
     value: parseInt(c.total_sales || 0),
   }));
 
+  const iceCreamBySubcategory = reportData?.iceCreamBySubcategory || [];
+  const totalIceCreamSales = iceCreamBySubcategory.reduce((sum: number, item: any) => sum + parseInt(item.total_sales || 0), 0);
+  const totalIceCreamQty = iceCreamBySubcategory.reduce((sum: number, item: any) => sum + parseInt(item.total_quantity || 0), 0);
+
   const dailyTrend = reportData?.dailyTrend || [];
 
   return (
@@ -392,6 +396,70 @@ export default function ReportsPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Arun Ice Creams Sub-Category Breakdown */}
+      <Card className="p-5 bg-white border-slate-200 shadow-xs">
+        <CardHeader className="p-0 pb-4 flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
+              <span>Arun Ice Creams — Sales by Sub-Category</span>
+              <span className="text-xs bg-rose-50 text-rose-700 border border-rose-200 px-2 py-0.5 rounded-full font-bold">
+                {totalIceCreamQty} items sold
+              </span>
+            </CardTitle>
+            <CardDescription className="text-xs mt-0.5">
+              Breakdown of ice cream volumes and revenues across Bars, i-Cone, Tubs, Cups, and Specials
+            </CardDescription>
+          </div>
+          <div className="text-right">
+            <span className="text-xs text-slate-400 font-semibold block">Total Ice Cream Sales</span>
+            <span className="text-lg font-black text-rose-700">{formatINR(totalIceCreamSales)}</span>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          {iceCreamBySubcategory.length === 0 ? (
+            <div className="py-8 text-center text-xs text-slate-400">
+              No ice cream sales recorded in this period.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-slate-100 bg-slate-50/70 text-slate-500 font-bold">
+                    <th className="py-2.5 px-4">Sub-Category</th>
+                    <th className="py-2.5 px-4 text-center">Quantity Sold</th>
+                    <th className="py-2.5 px-4 text-right">Revenue (₹)</th>
+                    <th className="py-2.5 px-4 text-right">% of Ice Cream</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {iceCreamBySubcategory.map((item: any, idx: number) => {
+                    const sales = parseInt(item.total_sales || 0);
+                    const pct = totalIceCreamSales > 0 ? ((sales / totalIceCreamSales) * 100).toFixed(1) : '0';
+                    return (
+                      <tr key={idx} className="hover:bg-slate-50/80 transition-colors">
+                        <td className="py-3 px-4 font-bold text-slate-800 flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full bg-rose-400 inline-block" />
+                          <span>{item.subcategory_name}</span>
+                        </td>
+                        <td className="py-3 px-4 text-center font-bold text-slate-700">
+                          {item.total_quantity}
+                        </td>
+                        <td className="py-3 px-4 text-right font-black text-slate-900">
+                          {formatINR(sales)}
+                        </td>
+                        <td className="py-3 px-4 text-right text-slate-500 font-semibold">
+                          {pct}%
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

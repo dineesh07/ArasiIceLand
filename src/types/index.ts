@@ -2,7 +2,12 @@ import { z } from 'zod';
 import { Database } from './database';
 
 export type Category = Database['public']['Tables']['categories']['Row'];
-export type Service = Database['public']['Tables']['services']['Row'];
+export type Subcategory = Database['public']['Tables']['subcategories']['Row'];
+export type Service = Database['public']['Tables']['services']['Row'] & {
+  category_name?: string;
+  subcategory_name?: string | null;
+  subcategory_sort_order?: number | null;
+};
 export type Customer = Database['public']['Tables']['customers']['Row'];
 export type Bill = Database['public']['Tables']['bills']['Row'];
 export type BillItem = Database['public']['Tables']['bill_items']['Row'];
@@ -33,10 +38,20 @@ export interface CalculateAmountParams {
   quantity: number;
 }
 
+// Helper function for full display name
+export function formatServiceName(name: string, sizeLabel?: string | null): string {
+  if (sizeLabel && sizeLabel.trim()) {
+    return `${name} ${sizeLabel.trim()}`;
+  }
+  return name;
+}
+
 // Zod schemas
 export const serviceSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   category_id: z.string().uuid('Category is required'),
+  subcategory_id: z.string().uuid().optional().nullable(),
+  size_label: z.string().optional().nullable(),
   pricing_type: z.enum(['FIXED', 'PER_UNIT', 'PER_UNIT_MIN']),
   unit_label: z.string().optional().nullable(),
   rate: z.number().int().nonnegative('Rate must be a positive integer'),

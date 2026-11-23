@@ -204,3 +204,19 @@ export function useSettings() {
   });
 }
 
+// 14. Subcategories
+export function useSubcategories(categoryId?: string) {
+  return useQuery({
+    queryKey: ['subcategories', { categoryId }],
+    queryFn: async () => {
+      const url = categoryId ? `/api/subcategories?categoryId=${categoryId}` : '/api/subcategories';
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Failed to fetch subcategories');
+      const data = await res.json();
+      return data.subcategories || [];
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+

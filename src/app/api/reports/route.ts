@@ -117,6 +117,24 @@ export async function GET(request: Request) {
     const dayCloseCashOut = parseInt(dayCloseExpenses?.cash_expenses || 0);
     const expectedDrawerCash = dayCloseCashIn - dayCloseCashOut;
 
+    // 7. Ice Cream Breakdown by Subcategory
+    const iceCreamBySubcategory = await query(`
+      select 
+        coalesce(sub.name, 'Uncategorized') as subcategory_name,
+        coalesce(sum(bi.amount), 0)::int as total_sales,
+        coalesce(sum(bi.quantity), 0)::int as total_quantity
+      from bills b
+      join bill_items bi on bi.bill_id = b.id
+      join services s on s.id = bi.service_id
+      join categories c on c.id = s.category_id
+      left join subcategories sub on sub.id = s.subcategory_id
+      where b.deleted_at is null 
+        and b.bill_date between $1 and $2
+        and c.name ilike '%ice%'
+      group by coalesce(sub.name, 'Uncategorized'), sub.sort_order
+      order by coalesce(sub.sort_order, 999) asc, total_sales desc
+    `, [from, to]);
+
     return NextResponse.json({
       from,
       to,
@@ -134,6 +152,7 @@ export async function GET(request: Request) {
         vendorPayables,
       },
       salesByCategory,
+      iceCreamBySubcategory,
       expensesByCategory,
       dailyTrend,
       dayClose: {

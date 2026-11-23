@@ -26,19 +26,23 @@ import { Badge } from '@/components/ui/badge';
 import { formatINR } from '@/lib/formatters';
 import { formatISTDisplay, todayIST } from '@/lib/dates';
 import { calculateAmount } from '@/lib/pricing';
-import { PricingType } from '@/types';
+import { PricingType, formatServiceName } from '@/types';
 import {
   useServices,
   useCategories,
   useCustomers,
   useBills,
   useTokenPreview,
+  useSubcategories,
 } from '@/lib/api-hooks';
 
 interface Service {
   id: string;
   category_id: string;
   category_name: string;
+  subcategory_id?: string | null;
+  subcategory_name?: string | null;
+  size_label?: string | null;
   name: string;
   active: boolean;
   pricing_type: PricingType;
@@ -106,7 +110,12 @@ export default function NewEntryPage() {
 
   // Active category filter on counter
   const [activeCategory, setActiveCategory] = useState<string>('all');
+  const [activeSubcategory, setActiveSubcategory] = useState<string>('all');
   const [serviceSearch, setServiceSearch] = useState('');
+
+  const iceCreamCategory = (categories as any[]).find((c) => c.name.toLowerCase().includes('ice'));
+  const isIceCreamActive = activeCategory === iceCreamCategory?.id;
+  const { data: subcategories = [] } = useSubcategories(iceCreamCategory?.id);
 
   // Form State
   const [customerName, setCustomerName] = useState('');
@@ -161,6 +170,8 @@ export default function NewEntryPage() {
       return;
     }
 
+    const displayName = formatServiceName(srv.name, srv.size_label);
+
     setCartItems((prev) => {
       const existingIdx = prev.findIndex((i) => i.service_id === srv.id);
       if (existingIdx >= 0) {
@@ -201,7 +212,7 @@ export default function NewEntryPage() {
           {
             service_id: srv.id,
             category_id: srv.category_id,
-            service_name: srv.name,
+            service_name: displayName,
             pricing_type: srv.pricing_type,
             unit_rate: srv.rate,
             min_charge: srv.min_charge,
@@ -382,8 +393,21 @@ export default function NewEntryPage() {
   const filteredServices = services.filter((s) => {
     const matchesCategory =
       activeCategory === 'all' || s.category_id === activeCategory;
-    const matchesSearch = s.name.toLowerCase().includes(serviceSearch.toLowerCase());
-    return matchesCategory && matchesSearch;
+
+    const matchesSubcategory =
+      !isIceCreamActive ||
+      activeSubcategory === 'all' ||
+      s.subcategory_id === activeSubcategory;
+
+    const searchTerm = serviceSearch.toLowerCase().trim();
+    const fullName = formatServiceName(s.name, s.size_label).toLowerCase();
+    const matchesSearch =
+      !searchTerm ||
+      fullName.includes(searchTerm) ||
+      (s.size_label && s.size_label.toLowerCase().includes(searchTerm)) ||
+      (s.subcategory_name && s.subcategory_name.toLowerCase().includes(searchTerm));
+
+    return matchesCategory && matchesSubcategory && matchesSearch;
   });
 
   return (
@@ -521,7 +545,10 @@ export default function NewEntryPage() {
             <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
               <button
                 type="button"
-                onClick={() => setActiveCategory('all')}
+                onClick={() => {
+                  setActiveCategory('all');
+                  setActiveSubcategory('all');
+                }}
                 className={`px-4 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-colors touch-target ${
                   activeCategory === 'all'
                     ? 'bg-slate-900 text-white shadow-sm'
@@ -541,6 +568,7 @@ export default function NewEntryPage() {
                         router.push('/tailoring');
                       } else {
                         setActiveCategory(c.id);
+                        setActiveSubcategory('all');
                       }
                     }}
                     className={`px-4 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-colors touch-target flex items-center gap-1.5 ${
@@ -558,6 +586,49 @@ export default function NewEntryPage() {
                 );
               })}
             </div>
+
+            {/* Ice Cream Subcategory Chips Row */}
+            {isIceCreamActive && (
+              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 pt-1 animate-in fade-in">
+                <button
+                  type="button"
+                  onClick={() => setActiveSubcategory('all')}
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all touch-target ${
+                    activeSubcategory === 'all'
+                      ? 'bg-rose-600 text-white shadow-sm ring-2 ring-rose-300'
+                      : 'bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100'
+                  }`}
+                >
+                  All ({services.filter((s) => s.category_id === iceCreamCategory?.id).length})
+                </button>
+                {(subcategories as any[]).map((sub) => {
+                  const count = services.filter((s) => s.subcategory_id === sub.id).length;
+                  return (
+                    <button
+                      key={sub.id}
+                      type="button"
+                      onClick={() => setActiveSubcategory(sub.id)}
+                      className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all touch-target flex items-center gap-1.5 ${
+                        activeSubcategory === sub.id
+                          ? 'bg-rose-600 text-white shadow-sm ring-2 ring-rose-300'
+                          : 'bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100'
+                      }`}
+                    >
+                      <span>{sub.name}</span>
+                      <span
+                        className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                          activeSubcategory === sub.id
+                            ? 'bg-rose-700 text-rose-100'
+                            : 'bg-rose-200/80 text-rose-800'
+                        }`}
+                      >
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
 
             <div className="relative">
               <Search className="w-4 h-4 absolute left-3.5 top-4 text-slate-400" />
@@ -580,19 +651,26 @@ export default function NewEntryPage() {
                   key={srv.id}
                   type="button"
                   onClick={() => addServiceToCart(srv)}
-                  className="p-3.5 bg-white border-2 border-slate-200 hover:border-sky-500 rounded-2xl text-left transition-all active:scale-95 shadow-xs flex flex-col justify-between min-h-[90px] touch-target group"
+                  className="p-3 bg-white border-2 border-slate-200 hover:border-sky-500 rounded-2xl text-left transition-all active:scale-95 shadow-xs flex flex-col justify-between min-h-[72px] touch-target group"
                 >
                   <div>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                      {srv.category_name}
-                    </span>
-                    <p className="font-bold text-slate-900 text-sm leading-tight mt-0.5 group-hover:text-sky-600">
+                    <div className="flex items-center justify-between gap-1">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block truncate">
+                        {srv.subcategory_name || srv.category_name}
+                      </span>
+                      {srv.size_label && (
+                        <span className="text-[11px] font-semibold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded-md flex-shrink-0">
+                          {srv.size_label}
+                        </span>
+                      )}
+                    </div>
+                    <p className="font-bold text-slate-900 text-sm leading-tight mt-1 group-hover:text-sky-600">
                       {srv.name}
                     </p>
                   </div>
 
                   <div className="flex items-baseline justify-between mt-2 pt-1 border-t border-slate-100">
-                    <span className="text-base font-black text-sky-700">
+                    <span className="text-base font-black text-slate-900 group-hover:text-sky-600">
                       {formatINR(srv.rate)}
                     </span>
                     {srv.min_charge && (

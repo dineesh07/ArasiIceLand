@@ -29,11 +29,36 @@ export type Database = {
           created_at?: string
         }
       }
-      services: {
+      subcategories: {
         Row: {
           id: string
           category_id: string
           name: string
+          sort_order: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          category_id: string
+          name: string
+          sort_order?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          category_id?: string
+          name?: string
+          sort_order?: number
+          created_at?: string
+        }
+      }
+      services: {
+        Row: {
+          id: string
+          category_id: string
+          subcategory_id: string | null
+          name: string
+          size_label: string | null
           active: boolean
           pricing_type: 'FIXED' | 'PER_UNIT' | 'PER_UNIT_MIN'
           unit_label: string | null
@@ -45,7 +70,9 @@ export type Database = {
         Insert: {
           id?: string
           category_id: string
+          subcategory_id?: string | null
           name: string
+          size_label?: string | null
           active?: boolean
           pricing_type: 'FIXED' | 'PER_UNIT' | 'PER_UNIT_MIN'
           unit_label?: string | null
@@ -57,7 +84,9 @@ export type Database = {
         Update: {
           id?: string
           category_id?: string
+          subcategory_id?: string | null
           name?: string
+          size_label?: string | null
           active?: boolean
           pricing_type?: 'FIXED' | 'PER_UNIT' | 'PER_UNIT_MIN'
           unit_label?: string | null
