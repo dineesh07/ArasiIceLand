@@ -50,13 +50,13 @@ export function DesktopSidebar({ overdueTailoringCount = 0 }: { overdueTailoring
     <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 z-30 bg-white border-r border-slate-200">
       {/* Brand Header */}
       <div className="flex items-center gap-3 px-6 h-[4.5rem] border-b border-slate-100 py-4">
-        <div className="w-10 h-10 rounded-xl overflow-hidden shadow-sm shrink-0 border border-slate-100 bg-white">
+        <div className="w-10 h-10 shrink-0">
           <Image
             src="/logo.png"
-            alt="Shop Logo"
+            alt="Shop Manager"
             width={40}
             height={40}
-            className="w-full h-full object-cover"
+            className="w-full h-full drop-shadow-sm"
             priority
           />
         </div>

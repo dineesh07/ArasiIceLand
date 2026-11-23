@@ -53,13 +53,13 @@ export default function LoginPage() {
     <div className="min-h-screen bg-slate-100 flex flex-col justify-center items-center px-4 py-8">
       <div className="w-full max-w-md space-y-6">
         <div className="text-center space-y-2">
-          <div className="inline-flex w-20 h-20 rounded-3xl overflow-hidden shadow-lg border border-slate-200 bg-white">
+          <div className="inline-flex w-20 h-20 shrink-0">
             <Image
               src="/logo.png"
-              alt="Shop Logo"
+              alt="Shop Manager"
               width={80}
               height={80}
-              className="w-full h-full object-cover"
+              className="w-full h-full drop-shadow-md"
               priority
             />
           </div>

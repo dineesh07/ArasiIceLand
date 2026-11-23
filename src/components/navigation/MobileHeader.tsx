@@ -10,13 +10,13 @@ export function MobileHeader() {
   return (
     <header className="lg:hidden sticky top-0 z-40 bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between shadow-xs">
       <div className="flex items-center gap-2.5">
-        <div className="w-8 h-8 rounded-lg overflow-hidden shadow-xs shrink-0 border border-slate-100 bg-white">
+        <div className="w-8 h-8 shrink-0">
           <Image
             src="/logo.png"
-            alt="Shop Logo"
+            alt="Shop Manager"
             width={32}
             height={32}
-            className="w-full h-full object-cover"
+            className="w-full h-full drop-shadow-xs"
             priority
           />
         </div>
