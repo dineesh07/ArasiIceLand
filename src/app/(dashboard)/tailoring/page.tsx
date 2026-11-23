@@ -24,6 +24,7 @@ import { formatINR } from '@/lib/formatters';
 import { formatISTDisplay, todayIST } from '@/lib/dates';
 import { useTailoringOrders, useServices } from '@/lib/api-hooks';
 import { CustomDatePicker } from '@/components/ui/custom-date-picker';
+import { Modal } from '@/components/ui/modal';
 
 interface TailoringItem {
   service_id: string;
@@ -485,23 +486,19 @@ export default function TailoringPage() {
       )}
 
       {/* New Order Modal */}
-      {modalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b pb-3">
-              <h2 className="text-xl font-bold text-slate-900">New Tailoring Order</h2>
-              <button onClick={() => setModalOpen(false)} className="p-1 rounded-lg hover:bg-slate-100">
-                <X className="w-5 h-5 text-slate-400" />
-              </button>
-            </div>
+      <Modal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title="New Tailoring Order"
+        maxWidth="lg"
+      >
+        {formError && (
+          <div className="p-3 mb-4 text-xs text-red-700 bg-red-50 border border-red-200 rounded-xl">
+            {formError}
+          </div>
+        )}
 
-            {formError && (
-              <div className="p-3 text-xs text-red-700 bg-red-50 border border-red-200 rounded-xl">
-                {formError}
-              </div>
-            )}
-
-            <form onSubmit={handleSaveOrder} className="space-y-4">
+        <form onSubmit={handleSaveOrder} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-slate-700">Customer Name *</label>
@@ -606,14 +603,17 @@ export default function TailoringPage() {
                 </Button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+      </Modal>
 
       {/* Deliver Payment Dialog */}
-      {deliverModalOpen && orderToDeliver && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+      <Modal
+        isOpen={deliverModalOpen && !!orderToDeliver}
+        onClose={() => setDeliverModalOpen(false)}
+        maxWidth="md"
+        showCloseButton={false}
+      >
+        {orderToDeliver && (
+          <div className="space-y-4">
             <div className="text-center space-y-1">
               <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
                 <CheckCircle2 className="w-6 h-6" />
@@ -670,8 +670,8 @@ export default function TailoringPage() {
               Cancel
             </Button>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
     </div>
   );
 }

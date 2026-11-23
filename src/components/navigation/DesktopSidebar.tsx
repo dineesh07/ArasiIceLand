@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   Receipt,
@@ -46,11 +47,18 @@ export function DesktopSidebar({ overdueTailoringCount = 0 }: { overdueTailoring
   };
 
   return (
-    <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 z-50 bg-white border-r border-slate-200">
+    <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 z-30 bg-white border-r border-slate-200">
       {/* Brand Header */}
-      <div className="flex items-center gap-3 px-6 h-18 border-b border-slate-100 py-4">
-        <div className="w-10 h-10 rounded-xl bg-sky-600 flex items-center justify-center text-white shadow-sm">
-          <Store className="w-5 h-5" />
+      <div className="flex items-center gap-3 px-6 h-[4.5rem] border-b border-slate-100 py-4">
+        <div className="w-10 h-10 rounded-xl overflow-hidden shadow-sm shrink-0 border border-slate-100 bg-white">
+          <Image
+            src="/logo.png"
+            alt="Shop Logo"
+            width={40}
+            height={40}
+            className="w-full h-full object-cover"
+            priority
+          />
         </div>
         <div>
           <h1 className="font-bold text-lg text-slate-900 leading-tight">Shop Manager</h1>

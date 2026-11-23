@@ -25,6 +25,7 @@ import { Badge } from '@/components/ui/badge';
 import { formatINR } from '@/lib/formatters';
 import { formatISTDisplay, todayIST } from '@/lib/dates';
 import { CustomDatePicker } from '@/components/ui/custom-date-picker';
+import { Modal } from '@/components/ui/modal';
 
 interface BillItem {
   service_name: string;
@@ -357,134 +358,128 @@ export default function CustomerDetailPage() {
       </div>
 
       {/* Record Payment Dialog */}
-      {payModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b pb-3">
-              <h2 className="text-xl font-bold text-slate-900">Record Payment</h2>
-              <button onClick={() => setPayModalOpen(false)}>
-                <X className="w-5 h-5 text-slate-400" />
+      <Modal
+        isOpen={payModalOpen}
+        onClose={() => setPayModalOpen(false)}
+        title="Record Payment"
+        maxWidth="md"
+      >
+        {payError && (
+          <div className="p-3 mb-4 text-xs text-red-700 bg-red-50 border border-red-200 rounded-xl">
+            {payError}
+          </div>
+        )}
+
+        {/* Advance payment confirmation warning */}
+        {confirmAdvance && (
+          <div className="p-3.5 mb-4 bg-amber-50 border-2 border-amber-300 rounded-xl space-y-2">
+            <div className="flex items-center gap-2 text-amber-900 font-bold text-xs">
+              <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+              <span>Payment exceeds current pending balance ({formatINR(customer.balance)})</span>
+            </div>
+            <p className="text-xs text-amber-800">
+              This payment will create an advance credit for {customer.name}. Do you want to proceed?
+            </p>
+            <div className="flex justify-end gap-2 pt-1">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setConfirmAdvance(false)}
+                className="h-8 text-xs"
+              >
+                Change Amount
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleRecordPayment}
+                className="h-8 text-xs bg-amber-600 text-white font-bold"
+              >
+                Confirm Advance
+              </Button>
+            </div>
+          </div>
+        )}
+
+        <form onSubmit={handleRecordPayment} className="space-y-4">
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-slate-700">Amount Paid (₹) *</label>
+            <Input
+              type="number"
+              min="1"
+              required
+              placeholder="e.g. 200"
+              value={payAmount}
+              onChange={(e) => {
+                setPayAmount(e.target.value);
+                setConfirmAdvance(false);
+              }}
+              className="text-lg font-bold"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-slate-700">Payment Method *</label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setPayMethod('cash')}
+                className={`p-3 rounded-xl border-2 font-bold text-sm flex items-center justify-center gap-2 touch-target ${
+                  payMethod === 'cash'
+                    ? 'border-emerald-600 bg-emerald-50 text-emerald-800'
+                    : 'border-slate-200 bg-white text-slate-600'
+                }`}
+              >
+                <Wallet className="w-4 h-4" />
+                <span>Cash</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setPayMethod('upi')}
+                className={`p-3 rounded-xl border-2 font-bold text-sm flex items-center justify-center gap-2 touch-target ${
+                  payMethod === 'upi'
+                    ? 'border-sky-600 bg-sky-50 text-sky-800'
+                    : 'border-slate-200 bg-white text-slate-600'
+                }`}
+              >
+                <Smartphone className="w-4 h-4" />
+                <span>UPI / GPay</span>
               </button>
             </div>
-
-            {payError && (
-              <div className="p-3 text-xs text-red-700 bg-red-50 border border-red-200 rounded-xl">
-                {payError}
-              </div>
-            )}
-
-            {/* Advance payment confirmation warning */}
-            {confirmAdvance && (
-              <div className="p-3.5 bg-amber-50 border-2 border-amber-300 rounded-xl space-y-2">
-                <div className="flex items-center gap-2 text-amber-900 font-bold text-xs">
-                  <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
-                  <span>Payment exceeds current pending balance ({formatINR(customer.balance)})</span>
-                </div>
-                <p className="text-xs text-amber-800">
-                  This payment will create an advance credit for {customer.name}. Do you want to proceed?
-                </p>
-                <div className="flex justify-end gap-2 pt-1">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setConfirmAdvance(false)}
-                    className="h-8 text-xs"
-                  >
-                    Change Amount
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={handleRecordPayment}
-                    className="h-8 text-xs bg-amber-600 text-white font-bold"
-                  >
-                    Confirm Advance
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            <form onSubmit={handleRecordPayment} className="space-y-4">
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Amount Paid (₹) *</label>
-                <Input
-                  type="number"
-                  min="1"
-                  required
-                  placeholder="e.g. 200"
-                  value={payAmount}
-                  onChange={(e) => {
-                    setPayAmount(e.target.value);
-                    setConfirmAdvance(false);
-                  }}
-                  className="text-lg font-bold"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Payment Method *</label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setPayMethod('cash')}
-                    className={`p-3 rounded-xl border-2 font-bold text-sm flex items-center justify-center gap-2 touch-target ${
-                      payMethod === 'cash'
-                        ? 'border-emerald-600 bg-emerald-50 text-emerald-800'
-                        : 'border-slate-200 bg-white text-slate-600'
-                    }`}
-                  >
-                    <Wallet className="w-4 h-4" />
-                    <span>Cash</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setPayMethod('upi')}
-                    className={`p-3 rounded-xl border-2 font-bold text-sm flex items-center justify-center gap-2 touch-target ${
-                      payMethod === 'upi'
-                        ? 'border-sky-600 bg-sky-50 text-sky-800'
-                        : 'border-slate-200 bg-white text-slate-600'
-                    }`}
-                  >
-                    <Smartphone className="w-4 h-4" />
-                    <span>UPI / GPay</span>
-                  </button>
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Payment Date *</label>
-                <CustomDatePicker
-                  required
-                  value={payDate}
-                  onChange={(val) => setPayDate(val)}
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Optional Note</label>
-                <Input
-                  placeholder="e.g. Cleared Diwali printout balance"
-                  value={payNote}
-                  onChange={(e) => setPayNote(e.target.value)}
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-3 border-t">
-                <Button type="button" variant="outline" onClick={() => setPayModalOpen(false)}>
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={recordingPay}
-                  className="font-bold bg-emerald-600 hover:bg-emerald-700 text-white"
-                >
-                  {recordingPay ? 'Saving...' : 'Save Payment'}
-                </Button>
-              </div>
-            </form>
           </div>
-        </div>
-      )}
+
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-slate-700">Payment Date *</label>
+            <CustomDatePicker
+              required
+              value={payDate}
+              onChange={(val) => setPayDate(val)}
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-slate-700">Optional Note</label>
+            <Input
+              placeholder="e.g. Cleared Diwali printout balance"
+              value={payNote}
+              onChange={(e) => setPayNote(e.target.value)}
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-3 border-t">
+            <Button type="button" variant="outline" onClick={() => setPayModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={recordingPay}
+              className="font-bold bg-emerald-600 hover:bg-emerald-700 text-white"
+            >
+              {recordingPay ? 'Saving...' : 'Save Payment'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

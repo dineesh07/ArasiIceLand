@@ -13,6 +13,7 @@ import { PricingType } from '@/types';
 import { useServices, useCategories } from '@/lib/api-hooks';
 import { CustomSelect } from '@/components/ui/custom-select';
 import { CustomCheckbox } from '@/components/ui/custom-checkbox';
+import { Modal } from '@/components/ui/modal';
 
 interface Service {
   id: string;
@@ -329,178 +330,167 @@ export default function PriceListPage() {
       )}
 
       {/* Add / Edit Modal */}
-      {modalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b pb-3">
-              <h2 className="text-xl font-bold text-slate-900">
-                {editingService ? 'Edit Service' : 'Add New Service'}
-              </h2>
-              <button
-                onClick={() => setModalOpen(false)}
-                className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700"
-              >
-                <X className="w-5 h-5" />
-              </button>
+      <Modal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title={editingService ? 'Edit Service' : 'Add New Service'}
+        maxWidth="lg"
+      >
+        {formError && (
+          <div className="p-3 mb-4 text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-red-500" />
+            <span>{formError}</span>
+          </div>
+        )}
+
+        <form onSubmit={handleSave} className="space-y-4">
+          <div className="space-y-1.5">
+            <label className="text-sm font-semibold text-slate-700">Category</label>
+            <CustomSelect
+              value={formData.category_id}
+              onChange={(val) => setFormData({ ...formData, category_id: val })}
+              options={(categories as any[]).map((c) => ({
+                value: c.id,
+                label: c.name,
+              }))}
+              placeholder="Select category..."
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-sm font-semibold text-slate-700">Service Name</label>
+            <Input
+              required
+              placeholder="e.g. B/W Single Side, Vanilla Cup, Blouse"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-sm font-semibold text-slate-700">Pricing Formula</label>
+            <CustomSelect
+              value={formData.pricing_type}
+              onChange={(val) =>
+                setFormData({ ...formData, pricing_type: val as PricingType })
+              }
+              options={[
+                {
+                  value: 'FIXED',
+                  label: 'Fixed price (single price per item/application)',
+                  description: 'One flat rate (e.g. Aadhaar, ice cream)',
+                },
+                {
+                  value: 'PER_UNIT',
+                  label: 'Per unit (rate × quantity)',
+                  description: 'Rate multiplied strictly by quantity (e.g. typing)',
+                },
+                {
+                  value: 'PER_UNIT_MIN',
+                  label: 'Per unit with minimum charge (max of rate × qty or min)',
+                  description: 'Standard for printouts (e.g. ₹2/page, min ₹10)',
+                },
+              ]}
+            />
+          </div>
+
+          {formData.pricing_type !== 'FIXED' && (
+            <div className="space-y-1.5">
+              <label className="text-sm font-semibold text-slate-700">Unit Label</label>
+              <Input
+                placeholder="e.g. page, copy, meter"
+                value={formData.unit_label}
+                onChange={(e) => setFormData({ ...formData, unit_label: e.target.value })}
+              />
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <label className="text-sm font-semibold text-slate-700">Rate (₹)</label>
+              <Input
+                type="number"
+                min="0"
+                step="1"
+                required
+                placeholder="2"
+                value={formData.rate}
+                onChange={(e) => setFormData({ ...formData, rate: e.target.value })}
+              />
             </div>
 
-            {formError && (
-              <div className="p-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-red-500" />
-                <span>{formError}</span>
+            {formData.pricing_type === 'PER_UNIT_MIN' && (
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-slate-700">Minimum Charge (₹)</label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="1"
+                  required
+                  placeholder="10"
+                  value={formData.min_charge}
+                  onChange={(e) => setFormData({ ...formData, min_charge: e.target.value })}
+                />
               </div>
             )}
-
-            <form onSubmit={handleSave} className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="text-sm font-semibold text-slate-700">Category</label>
-                <CustomSelect
-                  value={formData.category_id}
-                  onChange={(val) => setFormData({ ...formData, category_id: val })}
-                  options={(categories as any[]).map((c) => ({
-                    value: c.id,
-                    label: c.name,
-                  }))}
-                  placeholder="Select category..."
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-sm font-semibold text-slate-700">Service Name</label>
-                <Input
-                  required
-                  placeholder="e.g. B/W Single Side, Vanilla Cup, Blouse"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-sm font-semibold text-slate-700">Pricing Formula</label>
-                <CustomSelect
-                  value={formData.pricing_type}
-                  onChange={(val) =>
-                    setFormData({ ...formData, pricing_type: val as PricingType })
-                  }
-                  options={[
-                    {
-                      value: 'FIXED',
-                      label: 'Fixed price (single price per item/application)',
-                      description: 'One flat rate (e.g. Aadhaar, ice cream)',
-                    },
-                    {
-                      value: 'PER_UNIT',
-                      label: 'Per unit (rate × quantity)',
-                      description: 'Rate multiplied strictly by quantity (e.g. typing)',
-                    },
-                    {
-                      value: 'PER_UNIT_MIN',
-                      label: 'Per unit with minimum charge (max of rate × qty or min)',
-                      description: 'Standard for printouts (e.g. ₹2/page, min ₹10)',
-                    },
-                  ]}
-                />
-              </div>
-
-              {formData.pricing_type !== 'FIXED' && (
-                <div className="space-y-1.5">
-                  <label className="text-sm font-semibold text-slate-700">Unit Label</label>
-                  <Input
-                    placeholder="e.g. page, copy, meter"
-                    value={formData.unit_label}
-                    onChange={(e) => setFormData({ ...formData, unit_label: e.target.value })}
-                  />
-                </div>
-              )}
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <label className="text-sm font-semibold text-slate-700">Rate (₹)</label>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="1"
-                    required
-                    placeholder="2"
-                    value={formData.rate}
-                    onChange={(e) => setFormData({ ...formData, rate: e.target.value })}
-                  />
-                </div>
-
-                {formData.pricing_type === 'PER_UNIT_MIN' && (
-                  <div className="space-y-1.5">
-                    <label className="text-sm font-semibold text-slate-700">Minimum Charge (₹)</label>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="1"
-                      required
-                      placeholder="10"
-                      value={formData.min_charge}
-                      onChange={(e) => setFormData({ ...formData, min_charge: e.target.value })}
-                    />
-                  </div>
-                )}
-              </div>
-
-              <div className="p-4 bg-sky-50 border border-sky-200 rounded-xl space-y-2">
-                <div className="flex items-center justify-between text-xs font-bold text-sky-900">
-                  <span className="flex items-center gap-1.5">
-                    <Calculator className="w-4 h-4 text-sky-600" />
-                    Live Pricing Preview
-                  </span>
-                  <span>Try It:</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-1.5 text-sm font-semibold text-slate-700">
-                    <span>Qty:</span>
-                    <Input
-                      type="number"
-                      min="1"
-                      value={testQty}
-                      onChange={(e) => setTestQty(parseInt(e.target.value) || 1)}
-                      className="w-20 h-10 text-center font-bold bg-white"
-                    />
-                  </div>
-                  <span className="text-slate-400 font-bold">→</span>
-                  <div className="text-base font-extrabold text-sky-700">
-                    {formatINR(previewAmount)}
-                  </div>
-                </div>
-                {formData.pricing_type === 'PER_UNIT_MIN' && (
-                  <p className="text-[11px] text-sky-800">
-                    Formula: max({parseInt(formData.rate) || 0} × {testQty}, {parseInt(formData.min_charge) || 0})
-                  </p>
-                )}
-              </div>
-
-              <div className="pt-2">
-                <CustomCheckbox
-                  id="active-toggle"
-                  checked={formData.active}
-                  onChange={(checked) => setFormData({ ...formData, active: checked })}
-                  label="Show on New Entry counter screen (Active)"
-                  description="When enabled, service appears as a quick-tap card at the counter"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-3 pt-4 border-t">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setModalOpen(false)}
-                  disabled={saving}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={saving} className="font-bold">
-                  {saving ? 'Saving...' : editingService ? 'Update Service' : 'Save Service'}
-                </Button>
-              </div>
-            </form>
           </div>
-        </div>
-      )}
+
+          <div className="p-4 bg-sky-50 border border-sky-200 rounded-xl space-y-2">
+            <div className="flex items-center justify-between text-xs font-bold text-sky-900">
+              <span className="flex items-center gap-1.5">
+                <Calculator className="w-4 h-4 text-sky-600" />
+                Live Pricing Preview
+              </span>
+              <span>Try It:</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1.5 text-sm font-semibold text-slate-700">
+                <span>Qty:</span>
+                <Input
+                  type="number"
+                  min="1"
+                  value={testQty}
+                  onChange={(e) => setTestQty(parseInt(e.target.value) || 1)}
+                  className="w-20 h-10 text-center font-bold bg-white"
+                />
+              </div>
+              <span className="text-slate-400 font-bold">→</span>
+              <div className="text-base font-extrabold text-sky-700">
+                {formatINR(previewAmount)}
+              </div>
+            </div>
+            {formData.pricing_type === 'PER_UNIT_MIN' && (
+              <p className="text-[11px] text-sky-800">
+                Formula: max({parseInt(formData.rate) || 0} × {testQty}, {parseInt(formData.min_charge) || 0})
+              </p>
+            )}
+          </div>
+
+          <div className="pt-2">
+            <CustomCheckbox
+              id="active-toggle"
+              checked={formData.active}
+              onChange={(checked) => setFormData({ ...formData, active: checked })}
+              label="Show on New Entry counter screen (Active)"
+              description="When enabled, service appears as a quick-tap card at the counter"
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-3 pt-4 border-t">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setModalOpen(false)}
+              disabled={saving}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={saving} className="font-bold">
+              {saving ? 'Saving...' : editingService ? 'Update Service' : 'Save Service'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

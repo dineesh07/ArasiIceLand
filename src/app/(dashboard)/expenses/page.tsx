@@ -22,6 +22,7 @@ import { useExpenses, useExpenseCategories } from '@/lib/api-hooks';
 import { CustomSelect } from '@/components/ui/custom-select';
 import { CustomDatePicker } from '@/components/ui/custom-date-picker';
 import { CustomMonthPicker } from '@/components/ui/custom-month-picker';
+import { Modal } from '@/components/ui/modal';
 
 interface Expense {
   id: string;
@@ -266,111 +267,105 @@ export default function ExpensesPage() {
       )}
 
       {/* Add Expense Modal */}
-      {modalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b pb-3">
-              <h2 className="text-xl font-bold text-slate-900">Add Shop Expense</h2>
-              <button onClick={() => setModalOpen(false)}>
-                <X className="w-5 h-5 text-slate-400" />
+      <Modal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title="Add Shop Expense"
+        maxWidth="md"
+      >
+        {formError && (
+          <div className="p-3 mb-4 text-xs text-red-700 bg-red-50 border border-red-200 rounded-xl">
+            {formError}
+          </div>
+        )}
+
+        <form onSubmit={handleAddExpense} className="space-y-4">
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-slate-700">Expense Date *</label>
+            <CustomDatePicker
+              required
+              value={expenseDate}
+              onChange={(val) => setExpenseDate(val)}
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-slate-700">Category *</label>
+            <CustomSelect
+              value={categoryId}
+              onChange={(val) => setCategoryId(val)}
+              placeholder="Select expense category..."
+              options={(categories as any[]).map((c) => ({
+                value: c.id,
+                label: c.name,
+              }))}
+              required
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-slate-700">Amount (₹) *</label>
+            <Input
+              type="number"
+              min="1"
+              required
+              placeholder="e.g. 500"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              className="text-lg font-bold"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-slate-700">Payment Method *</label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setMethod('cash')}
+                className={`p-3 rounded-xl border-2 font-bold text-sm flex items-center justify-center gap-2 touch-target ${
+                  method === 'cash'
+                    ? 'border-emerald-600 bg-emerald-50 text-emerald-800'
+                    : 'border-slate-200 bg-white text-slate-600'
+                }`}
+              >
+                <Wallet className="w-4 h-4" />
+                <span>Cash</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setMethod('upi')}
+                className={`p-3 rounded-xl border-2 font-bold text-sm flex items-center justify-center gap-2 touch-target ${
+                  method === 'upi'
+                    ? 'border-sky-600 bg-sky-50 text-sky-800'
+                    : 'border-slate-200 bg-white text-slate-600'
+                }`}
+              >
+                <Smartphone className="w-4 h-4" />
+                <span>UPI / GPay</span>
               </button>
             </div>
-
-            {formError && (
-              <div className="p-3 text-xs text-red-700 bg-red-50 border border-red-200 rounded-xl">
-                {formError}
-              </div>
-            )}
-
-            <form onSubmit={handleAddExpense} className="space-y-4">
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Expense Date *</label>
-                <CustomDatePicker
-                  required
-                  value={expenseDate}
-                  onChange={(val) => setExpenseDate(val)}
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Category *</label>
-                <CustomSelect
-                  value={categoryId}
-                  onChange={(val) => setCategoryId(val)}
-                  placeholder="Select expense category..."
-                  options={(categories as any[]).map((c) => ({
-                    value: c.id,
-                    label: c.name,
-                  }))}
-                  required
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Amount (₹) *</label>
-                <Input
-                  type="number"
-                  min="1"
-                  required
-                  placeholder="e.g. 500"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  className="text-lg font-bold"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Payment Method *</label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setMethod('cash')}
-                    className={`p-3 rounded-xl border-2 font-bold text-sm flex items-center justify-center gap-2 touch-target ${
-                      method === 'cash'
-                        ? 'border-emerald-600 bg-emerald-50 text-emerald-800'
-                        : 'border-slate-200 bg-white text-slate-600'
-                    }`}
-                  >
-                    <Wallet className="w-4 h-4" />
-                    <span>Cash</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setMethod('upi')}
-                    className={`p-3 rounded-xl border-2 font-bold text-sm flex items-center justify-center gap-2 touch-target ${
-                      method === 'upi'
-                        ? 'border-sky-600 bg-sky-50 text-sky-800'
-                        : 'border-slate-200 bg-white text-slate-600'
-                    }`}
-                  >
-                    <Smartphone className="w-4 h-4" />
-                    <span>UPI / GPay</span>
-                  </button>
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Note / Reason (Optional)</label>
-                <Input
-                  placeholder="e.g. Xerox paper 2 reams, Electricity bill"
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-3 border-t">
-                <Button type="button" variant="outline" onClick={() => setModalOpen(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={saving} className="font-bold">
-                  {saving ? 'Saving...' : 'Record Expense'}
-                </Button>
-              </div>
-            </form>
           </div>
-        </div>
-      )}
+
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-slate-700">Note / Reason (Optional)</label>
+            <Input
+              placeholder="e.g. Xerox paper 2 reams, Electricity bill"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-3 border-t">
+            <Button type="button" variant="outline" onClick={() => setModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={saving} className="font-bold">
+              {saving ? 'Saving...' : 'Record Expense'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

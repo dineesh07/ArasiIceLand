@@ -24,6 +24,7 @@ import { formatISTDisplay, todayIST } from '@/lib/dates';
 import { generateVendorOrderPdf, buildVendorWhatsAppUrl } from '@/lib/pdf/vendor-order-pdf';
 import { useVendorOrders, useVendorProducts } from '@/lib/api-hooks';
 import { CustomDatePicker } from '@/components/ui/custom-date-picker';
+import { Modal } from '@/components/ui/modal';
 
 interface VendorOrderItem {
   id?: string;
@@ -445,199 +446,179 @@ export default function VendorOrdersPage() {
       )}
 
       {/* New Order Modal */}
-      {orderModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b pb-3">
-              <h2 className="text-xl font-bold text-slate-900">New Vendor Order</h2>
-              <button onClick={() => setOrderModalOpen(false)}>
-                <X className="w-5 h-5 text-slate-400" />
-              </button>
-            </div>
-
-            <form onSubmit={handleCreateOrder} className="space-y-4">
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Order Date</label>
-                <CustomDatePicker
-                  required
-                  value={orderDate}
-                  onChange={(val) => setOrderDate(val)}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-700">Tap Product to Add</label>
-                <div className="flex flex-wrap gap-2">
-                  {(products as any[]).map((p) => (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => addProductToOrder(p)}
-                      className="px-3 py-1.5 rounded-xl border border-slate-300 bg-slate-50 hover:bg-sky-50 text-xs font-bold text-slate-800"
-                    >
-                      + {p.name} {p.unit ? `(${p.unit})` : ''}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {cartItems.length > 0 && (
-                <div className="p-3 bg-slate-50 rounded-xl space-y-2">
-                  <span className="text-xs font-bold text-slate-500 uppercase">Items in Order</span>
-                  {cartItems.map((item, idx) => (
-                    <div key={idx} className="flex items-center justify-between text-xs">
-                      <span className="font-bold text-slate-900">{item.product_name}</span>
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => updateCartQuantity(idx, item.quantity - 1)}
-                          className="w-6 h-6 rounded bg-white border font-bold"
-                        >
-                          -
-                        </button>
-                        <span className="font-bold w-6 text-center">{item.quantity}</span>
-                        <button
-                          type="button"
-                          onClick={() => updateCartQuantity(idx, item.quantity + 1)}
-                          className="w-6 h-6 rounded bg-white border font-bold"
-                        >
-                          +
-                        </button>
-                        <span className="text-slate-500">{item.unit || ''}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Special Notes / Request</label>
-                <Input
-                  placeholder="e.g. Please deliver before 2 PM"
-                  value={orderNote}
-                  onChange={(e) => setOrderNote(e.target.value)}
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-3 border-t">
-                <Button type="button" variant="outline" onClick={() => setOrderModalOpen(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={savingOrder} className="font-bold">
-                  {savingOrder ? 'Creating...' : 'Save Order'}
-                </Button>
-              </div>
-            </form>
+      <Modal
+        isOpen={orderModalOpen}
+        onClose={() => setOrderModalOpen(false)}
+        title="New Vendor Order"
+        maxWidth="lg"
+      >
+        <form onSubmit={handleCreateOrder} className="space-y-4">
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-slate-700">Order Date</label>
+            <CustomDatePicker
+              required
+              value={orderDate}
+              onChange={(val) => setOrderDate(val)}
+            />
           </div>
-        </div>
-      )}
+
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-slate-700">Tap Product to Add</label>
+            <div className="flex flex-wrap gap-2">
+              {(products as any[]).map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => addProductToOrder(p)}
+                  className="px-3 py-1.5 rounded-xl border border-slate-300 bg-slate-50 hover:bg-sky-50 text-xs font-bold text-slate-800 touch-target"
+                >
+                  + {p.name} {p.unit ? `(${p.unit})` : ''}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {cartItems.length > 0 && (
+            <div className="p-3 bg-slate-50 rounded-xl space-y-2">
+              <span className="text-xs font-bold text-slate-500 uppercase">Items in Order</span>
+              {cartItems.map((item, idx) => (
+                <div key={idx} className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-slate-900">{item.product_name}</span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => updateCartQuantity(idx, item.quantity - 1)}
+                      className="w-6 h-6 rounded bg-white border font-bold"
+                    >
+                      -
+                    </button>
+                    <span className="font-bold w-6 text-center">{item.quantity}</span>
+                    <button
+                      type="button"
+                      onClick={() => updateCartQuantity(idx, item.quantity + 1)}
+                      className="w-6 h-6 rounded bg-white border font-bold"
+                    >
+                      +
+                    </button>
+                    <span className="text-slate-500">{item.unit || ''}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-slate-700">Special Notes / Request</label>
+            <Input
+              placeholder="e.g. Please deliver before 2 PM"
+              value={orderNote}
+              onChange={(e) => setOrderNote(e.target.value)}
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-3 border-t">
+            <Button type="button" variant="outline" onClick={() => setOrderModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={savingOrder} className="font-bold">
+              {savingOrder ? 'Creating...' : 'Save Order'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
 
       {/* Add Product Modal */}
-      {productModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b pb-3">
-              <h2 className="text-xl font-bold text-slate-900">Add Vendor Product</h2>
-              <button onClick={() => setProductModalOpen(false)}>
-                <X className="w-5 h-5 text-slate-400" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveProduct} className="space-y-4">
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Product Name *</label>
-                <Input
-                  required
-                  placeholder="e.g. Vanilla Cup (Carton of 24)"
-                  value={newProductName}
-                  onChange={(e) => setNewProductName(e.target.value)}
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Unit (e.g. box, carton, kg)</label>
-                <Input
-                  placeholder="e.g. box"
-                  value={newProductUnit}
-                  onChange={(e) => setNewProductUnit(e.target.value)}
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-3 border-t">
-                <Button type="button" variant="outline" onClick={() => setProductModalOpen(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit" className="font-bold">
-                  Add Product
-                </Button>
-              </div>
-            </form>
+      <Modal
+        isOpen={productModalOpen}
+        onClose={() => setProductModalOpen(false)}
+        title="Add Vendor Product"
+        maxWidth="md"
+      >
+        <form onSubmit={handleSaveProduct} className="space-y-4">
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-slate-700">Product Name *</label>
+            <Input
+              required
+              placeholder="e.g. Vanilla Cup (Carton of 24)"
+              value={newProductName}
+              onChange={(e) => setNewProductName(e.target.value)}
+            />
           </div>
-        </div>
-      )}
+
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-slate-700">Unit (e.g. box, carton, kg)</label>
+            <Input
+              placeholder="e.g. box"
+              value={newProductUnit}
+              onChange={(e) => setNewProductUnit(e.target.value)}
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-3 border-t">
+            <Button type="button" variant="outline" onClick={() => setProductModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" className="font-bold">
+              Add Product
+            </Button>
+          </div>
+        </form>
+      </Modal>
 
       {/* Mark Delivered Modal */}
-      {deliverModalOpen && activeOrder && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b pb-3">
-              <h2 className="text-xl font-bold text-slate-900">Mark Order Delivered</h2>
-              <button onClick={() => setDeliverModalOpen(false)}>
-                <X className="w-5 h-5 text-slate-400" />
-              </button>
-            </div>
-
-            <form onSubmit={handleMarkDelivered} className="space-y-4">
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Delivered On *</label>
-                <CustomDatePicker
-                  required
-                  value={deliveryDate}
-                  onChange={(val) => setDeliveryDate(val)}
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Quoted Bill Amount (₹) *</label>
-                <Input
-                  type="number"
-                  min="1"
-                  required
-                  placeholder="e.g. 1500"
-                  value={quotedAmount}
-                  onChange={(e) => setQuotedAmount(e.target.value)}
-                  className="text-lg font-bold"
-                />
-                <p className="text-[11px] text-slate-400">
-                  This amount will show as payable until payment is recorded.
-                </p>
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-3 border-t">
-                <Button type="button" variant="outline" onClick={() => setDeliverModalOpen(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit" className="font-bold bg-amber-600 hover:bg-amber-700 text-white">
-                  Save Delivered
-                </Button>
-              </div>
-            </form>
+      <Modal
+        isOpen={deliverModalOpen && !!activeOrder}
+        onClose={() => setDeliverModalOpen(false)}
+        title="Mark Order Delivered"
+        maxWidth="md"
+      >
+        <form onSubmit={handleMarkDelivered} className="space-y-4">
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-slate-700">Delivered On *</label>
+            <CustomDatePicker
+              required
+              value={deliveryDate}
+              onChange={(val) => setDeliveryDate(val)}
+            />
           </div>
-        </div>
-      )}
+
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-slate-700">Quoted Bill Amount (₹) *</label>
+            <Input
+              type="number"
+              min="1"
+              required
+              placeholder="e.g. 1500"
+              value={quotedAmount}
+              onChange={(e) => setQuotedAmount(e.target.value)}
+              className="text-lg font-bold"
+            />
+            <p className="text-[11px] text-slate-400">
+              This amount will show as payable until payment is recorded.
+            </p>
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-3 border-t">
+            <Button type="button" variant="outline" onClick={() => setDeliverModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" className="font-bold bg-amber-600 hover:bg-amber-700 text-white">
+              Save Delivered
+            </Button>
+          </div>
+        </form>
+      </Modal>
 
       {/* Pay Order Modal */}
-      {payModalOpen && activeOrder && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b pb-3">
-              <h2 className="text-xl font-bold text-slate-900">Pay Vendor Order #{activeOrder.order_no}</h2>
-              <button onClick={() => setPayModalOpen(false)}>
-                <X className="w-5 h-5 text-slate-400" />
-              </button>
-            </div>
-
-            <div className="p-4 bg-slate-50 rounded-xl text-center">
+      <Modal
+        isOpen={payModalOpen && !!activeOrder}
+        onClose={() => setPayModalOpen(false)}
+        title={activeOrder ? `Pay Vendor Order #${activeOrder.order_no}` : 'Pay Vendor Order'}
+        maxWidth="md"
+      >
+        {activeOrder && (
+          <>
+            <div className="p-4 bg-slate-50 rounded-xl text-center mb-4">
               <p className="text-xs font-bold text-slate-400 uppercase">Amount to Pay</p>
               <p className="text-3xl font-black text-slate-900 mt-1">
                 {formatINR(activeOrder.quoted_amount)}
@@ -651,7 +632,7 @@ export default function VendorOrdersPage() {
                   <button
                     type="button"
                     onClick={() => setPayMethod('cash')}
-                    className={`p-3 rounded-xl border-2 font-bold text-sm flex items-center justify-center gap-2 ${
+                    className={`p-3 rounded-xl border-2 font-bold text-sm flex items-center justify-center gap-2 touch-target ${
                       payMethod === 'cash'
                         ? 'border-emerald-600 bg-emerald-50 text-emerald-800'
                         : 'border-slate-200 bg-white text-slate-600'
@@ -664,7 +645,7 @@ export default function VendorOrdersPage() {
                   <button
                     type="button"
                     onClick={() => setPayMethod('upi')}
-                    className={`p-3 rounded-xl border-2 font-bold text-sm flex items-center justify-center gap-2 ${
+                    className={`p-3 rounded-xl border-2 font-bold text-sm flex items-center justify-center gap-2 touch-target ${
                       payMethod === 'upi'
                         ? 'border-sky-600 bg-sky-50 text-sky-800'
                         : 'border-slate-200 bg-white text-slate-600'
@@ -698,9 +679,9 @@ export default function VendorOrdersPage() {
                 </Button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </Modal>
     </div>
   );
 }

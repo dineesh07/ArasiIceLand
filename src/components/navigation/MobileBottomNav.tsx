@@ -18,7 +18,7 @@ export function MobileBottomNav({ overdueTailoringCount = 0 }: { overdueTailorin
   ];
 
   return (
-    <nav className="lg:hidden fixed bottom-0 inset-x-0 z-50 bg-white border-t border-slate-200 px-2 py-1 shadow-lg safe-bottom">
+    <nav className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white border-t border-slate-200 px-2 py-1 shadow-lg safe-bottom">
       <div className="grid grid-cols-5 gap-1">
         {tabs.map((tab) => {
           const Icon = tab.icon;
@@ -26,12 +26,12 @@ export function MobileBottomNav({ overdueTailoringCount = 0 }: { overdueTailorin
             tab.href === '/'
               ? pathname === '/'
               : tab.href === '/more'
-              ? pathname.startsWith('/more') ||
+                ? pathname.startsWith('/more') ||
                 pathname.startsWith('/expenses') ||
                 pathname.startsWith('/vendor-orders') ||
                 pathname.startsWith('/price-list') ||
                 pathname.startsWith('/settings')
-              : pathname.startsWith(tab.href);
+                : pathname.startsWith(tab.href);
 
           return (
             <Link

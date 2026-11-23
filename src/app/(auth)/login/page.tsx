@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { Store, Lock, Mail, Loader2, AlertCircle, KeyRound, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -52,8 +53,15 @@ export default function LoginPage() {
     <div className="min-h-screen bg-slate-100 flex flex-col justify-center items-center px-4 py-8">
       <div className="w-full max-w-md space-y-6">
         <div className="text-center space-y-2">
-          <div className="inline-flex w-16 h-16 rounded-2xl bg-sky-600 items-center justify-center text-white shadow-md">
-            <Store className="w-8 h-8" />
+          <div className="inline-flex w-20 h-20 rounded-3xl overflow-hidden shadow-lg border border-slate-200 bg-white">
+            <Image
+              src="/logo.png"
+              alt="Shop Logo"
+              width={80}
+              height={80}
+              className="w-full h-full object-cover"
+              priority
+            />
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
             Shop Manager

@@ -21,6 +21,7 @@ import { Badge } from '@/components/ui/badge';
 import { formatINR } from '@/lib/formatters';
 import { useCustomers } from '@/lib/api-hooks';
 import { CustomCheckbox } from '@/components/ui/custom-checkbox';
+import { Modal } from '@/components/ui/modal';
 
 interface Customer {
   id: string;
@@ -190,65 +191,59 @@ export default function AccountsPage() {
       )}
 
       {/* Add Customer Modal */}
-      {modalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b pb-3">
-              <h2 className="text-xl font-bold text-slate-900">Add Customer</h2>
-              <button onClick={() => setModalOpen(false)}>
-                <X className="w-5 h-5 text-slate-400" />
-              </button>
-            </div>
-
-            {error && (
-              <div className="p-3 text-xs text-red-700 bg-red-50 border border-red-200 rounded-xl flex items-center gap-2">
-                <AlertCircle className="w-4 h-4" />
-                <span>{error}</span>
-              </div>
-            )}
-
-            <form onSubmit={handleCreateCustomer} className="space-y-4">
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Customer Name *</label>
-                <Input
-                  required
-                  placeholder="e.g. Senthil Kumar"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Phone Number (Optional)</label>
-                <Input
-                  placeholder="e.g. 9840012345"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                />
-              </div>
-
-              <div className="pt-2">
-                <CustomCheckbox
-                  id="account-check"
-                  checked={isAccount}
-                  onChange={(checked) => setIsAccount(checked)}
-                  label="Enable Credit Account"
-                  description="Allows customer to defer payments with 'Add to Account' at checkout"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-3 border-t">
-                <Button type="button" variant="outline" onClick={() => setModalOpen(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={saving} className="font-bold">
-                  {saving ? 'Saving...' : 'Save Customer'}
-                </Button>
-              </div>
-            </form>
+      <Modal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title="Add Customer"
+        maxWidth="md"
+      >
+        {error && (
+          <div className="p-3 mb-4 text-xs text-red-700 bg-red-50 border border-red-200 rounded-xl flex items-center gap-2">
+            <AlertCircle className="w-4 h-4" />
+            <span>{error}</span>
           </div>
-        </div>
-      )}
+        )}
+
+        <form onSubmit={handleCreateCustomer} className="space-y-4">
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-slate-700">Customer Name *</label>
+            <Input
+              required
+              placeholder="e.g. Senthil Kumar"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-slate-700">Phone Number (Optional)</label>
+            <Input
+              placeholder="e.g. 9840012345"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
+          </div>
+
+          <div className="pt-2">
+            <CustomCheckbox
+              id="account-check"
+              checked={isAccount}
+              onChange={(checked) => setIsAccount(checked)}
+              label="Enable Credit Account"
+              description="Allows customer to defer payments with 'Add to Account' at checkout"
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-3 border-t">
+            <Button type="button" variant="outline" onClick={() => setModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={saving} className="font-bold">
+              {saving ? 'Saving...' : 'Save Customer'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }
