@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 :root {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "SF Pro", system-ui, "Helvetica Neue", Helvetica, Arial, sans-serif;
   --background: #f8fafc;
   --foreground: #0f172a;
   --card: #ffffff;
@@ -28,8 +29,23 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
     -webkit-tap-highlight-color: transparent;
   }
+
+  /* Apple Typography: Optical tracking (letter-spacing) */
+  h1, h2, h3, .font-extrabold, .font-black {
+    letter-spacing: -0.025em;
+  }
+}
+
+/* Apple Design: Responsive feedback on pointer-down */
+button:active:not(:disabled),
+.touch-target:active:not(:disabled) {
+  transform: scale(0.975);
+  transition: transform 80ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 /* Ensure large touch targets for mobile accessibility (min 44px) */
