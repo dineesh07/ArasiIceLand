@@ -117,7 +117,7 @@ export async function GET(request: Request) {
     const dayCloseCashOut = parseInt(dayCloseExpenses?.cash_expenses || 0);
     const expectedDrawerCash = dayCloseCashIn - dayCloseCashOut;
 
-    // 7. Ice Cream Breakdown by Subcategory
+    // 7. Ice Cream Breakdown by Subcategory & Top Selling Items
     const iceCreamBySubcategory = await query(`
       select 
         coalesce(sub.name, 'Uncategorized') as subcategory_name,
@@ -134,6 +134,75 @@ export async function GET(request: Request) {
       group by coalesce(sub.name, 'Uncategorized'), sub.sort_order
       order by coalesce(sub.sort_order, 999) asc, total_sales desc
     `, [from, to]);
+
+    // Top Selling Ice Creams in the selected period (by quantity & revenue)
+    const topIceCreams = await query(`
+      select 
+        bi.service_name,
+        coalesce(sub.name, 'Ice Cream') as subcategory_name,
+        coalesce(sum(bi.quantity), 0)::int as total_quantity,
+        coalesce(sum(bi.amount), 0)::int as total_sales
+      from bills b
+      join bill_items bi on bi.bill_id = b.id
+      join services s on s.id = bi.service_id
+      join categories c on c.id = s.category_id
+      left join subcategories sub on sub.id = s.subcategory_id
+      where b.deleted_at is null 
+        and b.bill_date between $1 and $2
+        and c.name ilike '%ice%'
+      group by bi.service_name, coalesce(sub.name, 'Ice Cream')
+      order by total_quantity desc, total_sales desc
+      limit 10
+    `, [from, to]);
+
+    // 8. Period Sales Comparisons (Today vs Yesterday, This Week vs Last Week, This Month vs Last Month)
+    const comparisonsRes = await queryOne(`
+      with 
+      today_sales as (
+        select coalesce(sum(total), 0)::int as val from bills 
+        where deleted_at is null and bill_date = current_date
+      ),
+      yesterday_sales as (
+        select coalesce(sum(total), 0)::int as val from bills 
+        where deleted_at is null and bill_date = current_date - interval '1 day'
+      ),
+      this_week_sales as (
+        select coalesce(sum(total), 0)::int as val from bills 
+        where deleted_at is null and bill_date >= date_trunc('week', current_date)::date
+      ),
+      last_week_sales as (
+        select coalesce(sum(total), 0)::int as val from bills 
+        where deleted_at is null 
+          and bill_date >= (date_trunc('week', current_date) - interval '7 days')::date
+          and bill_date < date_trunc('week', current_date)::date
+      ),
+      this_month_sales as (
+        select coalesce(sum(total), 0)::int as val from bills 
+        where deleted_at is null and bill_date >= date_trunc('month', current_date)::date
+      ),
+      last_month_sales as (
+        select coalesce(sum(total), 0)::int as val from bills 
+        where deleted_at is null 
+          and bill_date >= (date_trunc('month', current_date) - interval '1 month')::date
+          and bill_date < date_trunc('month', current_date)::date
+      )
+      select 
+        (select val from today_sales) as today,
+        (select val from yesterday_sales) as yesterday,
+        (select val from this_week_sales) as this_week,
+        (select val from last_week_sales) as last_week,
+        (select val from this_month_sales) as this_month,
+        (select val from last_month_sales) as last_month
+    `);
+
+    const comparisons = {
+      today: parseInt(comparisonsRes?.today || 0),
+      yesterday: parseInt(comparisonsRes?.yesterday || 0),
+      thisWeek: parseInt(comparisonsRes?.this_week || 0),
+      lastWeek: parseInt(comparisonsRes?.last_week || 0),
+      thisMonth: parseInt(comparisonsRes?.this_month || 0),
+      lastMonth: parseInt(comparisonsRes?.last_month || 0),
+    };
 
     return NextResponse.json({
       from,
@@ -153,6 +222,8 @@ export async function GET(request: Request) {
       },
       salesByCategory,
       iceCreamBySubcategory,
+      topIceCreams,
+      comparisons,
       expensesByCategory,
       dailyTrend,
       dayClose: {
