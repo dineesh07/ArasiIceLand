@@ -1,71 +1,178 @@
-# Shop Manager (Arasi Shop)
+<p align="center">
+  <img src="./public/logo.png" alt="Arasi Iceland & Computers Logo" width="130" height="130" />
+</p>
 
-A modern shop management web application tailored for a single shop owner in India operating:
-1. **Internet Centre**: Printouts, Xerox, Typing, and Government Applications (Community Certificate, Aadhaar, PAN, etc.)
-2. **Ice Cream**: Arun Ice Creams menu
-3. **Tailoring**: Custom blouse and churidar orders
+<h1 align="center">🍨 Arasi Iceland & Computers 🖥️ ✂️</h1>
+
+<p align="center">
+  <strong>A purpose-built, super-intuitive shop management app crafted with love for my Mom.</strong>
+</p>
+
+<p align="center">
+  <a href="https://arasiiceland.vercel.app">
+    <img src="https://img.shields.io/badge/🚀_Live_Demo-arasiiceland.vercel.app-0284c7?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Demo" />
+  </a>
+  <img src="https://img.shields.io/badge/Made_with_❤️_for-My_Mom-ff69b4?style=for-the-badge" alt="Made for Mom" />
+  <img src="https://img.shields.io/badge/Status-Production_Ready-10b981?style=for-the-badge" alt="Status" />
+  <img src="https://img.shields.io/badge/Next.js-14_(App_Router)-black?style=for-the-badge&logo=next.js" alt="Next.js" />
+  <img src="https://img.shields.io/badge/Database-PostgreSQL_(Neon)-00e599?style=for-the-badge&logo=postgresql&logoColor=black" alt="PostgreSQL" />
+</p>
 
 ---
 
-## Tech Stack
-- **Framework**: Next.js 14 (App Router) + TypeScript (strict)
-- **Styling**: Tailwind CSS + custom mobile-first UI components, Lucide icons
-- **Database & Auth**: Supabase PostgreSQL with Row Level Security (RLS) + `@supabase/ssr`
-- **Form & Validation**: Zod, React Hook Form
-- **State & Data Fetching**: TanStack Query (React Query)
-- **Dates**: `date-fns` & `date-fns-tz` locked to `Asia/Kolkata` (IST)
-- **Reporting & Charts**: Recharts
-- **PDF**: jsPDF for A4 vendor orders
-- **Testing**: Vitest
+## 🌟 Live Application
+
+> **🔗 Experience the live application:** **[https://arasiiceland.vercel.app](https://arasiiceland.vercel.app)**  
+> *Optimized for mobile smartphones, tablets, and desktop counter screens.*
 
 ---
 
-## Getting Started
+## 💖 Built with Love for My Mom
 
-### 1. Supabase Project Setup
-1. Create a project at [supabase.com](https://supabase.com).
-2. In Supabase Dashboard -> **Authentication** -> **Providers** -> **Email**:
-   - Ensure Email provider is enabled.
-3. In Supabase Dashboard -> **Authentication** -> **URL Configuration**:
-   - Set Site URL to `http://localhost:3000` (or your production Vercel domain).
-   - Set Redirect URLs to `http://localhost:3000/auth/callback` and `https://<your-vercel-app>.vercel.app/auth/callback`.
-4. In Supabase Dashboard -> **Authentication** -> **Sign In / Up**:
-   - **Disable "Allow new users to sign up"** (Owner-only application).
-5. In Supabase Dashboard -> **Authentication** -> **Users**:
-   - Click **Add user** -> **Create user** with the owner's email and password.
+<p align="center">
+  <em>"Behind every successful local business is a hardworking mother doing everything from sunrise to midnight."</em>
+</p>
 
-### 2. Apply Database Migrations & Seeds
-Run the SQL migration scripts in order using the Supabase SQL Editor:
-1. `supabase/migrations/20261122000001_initial_schema.sql` (Creates all 15 tables and indexes)
-2. `supabase/migrations/20261122000002_rls_policies.sql` (Enables RLS on all tables with authenticated owner-only access)
-3. `supabase/migrations/20261122000003_functions_and_rpc.sql` (Next token atomic generator, create_bill, deliver_tailoring_order, pay_vendor_order)
-4. `supabase/migrations/20261122000004_report_views.sql` (Sales by category, cash vs UPI collected, expenses, customer ledger balance)
-5. `supabase/seed.sql` (Seeds Categories, Expense Categories, Shop Settings, and initial Services)
+My mother runs **Arasi Iceland & Computers** in Modakurichi (Erode, Tamil Nadu). Under a single roof, she independently manages three completely different customer businesses:
 
-### 3. Environment Variables
+1. **🍨 Arun Ice Creams Parlour**: Retail sales of nearly 100 ice cream cups, cones, bars, and family tubs.
+2. **🖥️ Internet & Online Service Centre**: Xerox, color printouts, typing, and essential government services (Aadhaar cards, PAN cards, community certificates, and exam applications).
+3. **✂️ Tailoring & Boutique**: Custom women's blouse stitching, lining blouses, churidars, and garment alterations.
+
+Watching her run the shop every single day, I saw how stressful manual record-keeping was for her. I built this software specifically around **her daily routine, her workflow, and her peace of mind**.
+
+---
+
+## 🛑 The Pain Points She Faced (Before)
+
+Before this software, running the shop meant juggling multiple physical notebooks, loose receipts, and stressful calculations:
+
+| # | Daily Challenge | What Happened in Real Life |
+|---|---|---|
+| 📝 | **Scattered Paper Diaries** | She had to write entries across 3 different physical notebooks. Pages would get torn, stained, or misplaced during busy evening rush hours. |
+| 🧮 | **Manual Mental Math Under Pressure** | When 4 to 5 customers crowded the counter, calculating multiple printouts, xerox copies, and ice creams in her head caused fatigue and accidental undercharging. |
+| 📦 | **Ice Cream Box vs Unit Confusion** | Arun Ice Creams vendors sell in master boxes (e.g., 24 cups/box), but customers buy single units. Calling the vendor and calculating how many boxes to order was confusing and time-consuming. |
+| 🧵 | **Lost Tailoring Measurements & Due Dates** | Tailoring measurements written on paper slips often got mixed up. Tracking which blouse was *Received*, *Stitched*, or *Due for Delivery* was a constant headache. |
+| 📖 | **Customer Credit (Udhar) Disputes** | Customers who took items on credit often forgot past payments. Tracking partial cash and UPI payments in small diaries led to uncomfortable balance disagreements. |
+| 🖥️ | **Complex Existing POS Software** | Mainstream POS systems (like Tally or generic retail apps) are packed with complicated accounting jargon (Debit, Credit, Ledger reconciliation) that felt overwhelming on a mobile screen. |
+
+---
+
+## 💡 How We Solved It For Her (After)
+
+We stripped away all unnecessary complexity and designed a **clean, 1-tap mobile experience** tailored directly to her hands:
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                   HOW THE SOLUTION WORKS FOR MOM                       │
+│                                                                        │
+│   🍨 1-Tap Bill Entry   ──►  Auto-Token (#1, #2..)  ──► Instant Total  │
+│   📦 Vendor Re-order    ──►  1-Click WhatsApp Msg   ──► A4 Print PDF   │
+│   ✂️ Tailoring Pipeline ──►  Received ➔ Ready ➔ Delivered              │
+│   📊 Mom-Friendly Stats ──►  No confusing jargon    ──► Pure Clarity   │
+└────────────────────────────────────────────────────────────────────────┘
+```
+
+- **⚡ 1-Tap Quick Counter Billing**:
+  - Big, easy-to-tap buttons for all 111 items.
+  - Automatic token number generation (`#1`, `#2`, `#3`...) reset daily for easy customer queue management.
+  - Cart sits right at the top on mobile so she can review items instantly without scrolling.
+
+- **📦 1-Click Vendor Purchase Orders**:
+  - Pre-programmed with Arun Ice Cream box conversion rates (e.g., units per box).
+  - Automatically generates ready-to-send **WhatsApp order text** with one button tap.
+  - Automatically generates an official **A4 PDF Purchase Order** with shop branding and dispatch breakdown.
+
+- **✂️ Tailoring Workflow Made Visual**:
+  - Visual status pipeline: **Received** ➔ **Ready for Delivery** ➔ **Delivered**.
+  - Customer phone numbers, custom measurements, and promised delivery dates are organized on interactive cards.
+
+- **📊 Mom-Friendly Reports (Zero Jargon)**:
+  - Removed confusing terms like *"Net Realized Profit"*, *"Expected Margin"*, and *"Drawer Cash Net"*.
+  - Replaced with crystal-clear bar charts: **Today vs Yesterday**, **This Week vs Last Week**, **Sales by Category**, and **Most Bought Ice Creams**.
+
+- **📱 Mobile-First PWA (Installable on Phone)**:
+  - Works like a native mobile app directly on her phone home screen with offline resilience.
+  - Smooth slide-out navigation drawer designed for quick single-thumb navigation.
+
+---
+
+## 🚀 Key Features Breakdown
+
+```
+✨ Arasi Iceland & Computers Architecture
+├── 📱 Counter POS (Fast Billing & Token Queue)
+├── 🍨 Arun Ice Cream Catalog (98 SKUs with box metrics)
+├── 🖥️ Internet Centre Services (Printout, Xerox, Govt Forms)
+├── ✂️ Tailoring Tracker (Measurements & Delivery Dates)
+├── 📦 Vendor Management (WhatsApp Orders & PDF Generator)
+├── 📒 Customer Ledger (Udhar / Credit with Partial Payments)
+├── 💸 Expense Tracker (Shop Utilities, Stock & Maintenance)
+└── 📈 Clear Analytics (Daily, Weekly & Monthly comparisons)
+```
+
+---
+
+## 🛠️ Tech Stack & Architecture
+
+| Layer | Technologies Used |
+|---|---|
+| **Frontend Framework** | **Next.js 14** (App Router, React Server Components) |
+| **Language** | **TypeScript** (Strict mode enabled) |
+| **Styling & Design** | **Tailwind CSS**, SF Pro Display Typography, Lucide Icons |
+| **Database** | **PostgreSQL (Neon Serverless)** with connection pooling |
+| **State Management** | **TanStack Query (React Query)** & SWR for real-time sync |
+| **PDF Generation** | **jsPDF** (Automated A4 Official Purchase Orders) |
+| **Testing** | **Vitest** (29 comprehensive unit & integration tests) |
+| **Deployment** | **Vercel** with automatic edge CDN caching |
+
+---
+
+## 🧪 Testing & Verification
+
+The application is protected with automated test suites verifying pricing algorithms, report aggregations, date-time formatting (locked to `Asia/Kolkata` IST), and box conversion logic:
+
+```bash
+# Run unit & integration tests
+npx vitest run
+```
+
+```
+✓ tests/reports.test.ts (5 tests)
+✓ tests/pricing.test.ts (15 tests)
+✓ tests/icecream.test.ts (4 tests)
+✓ tests/dates.test.ts (5 tests)
+
+Test Files  4 passed (4)
+     Tests  29 passed (29)
+```
+
+---
+
+## 💻 Local Development Setup
+
+### 1. Clone & Install
+```bash
+git clone https://github.com/dineesh07/ArasiIceLand.git
+cd ArasiIceLand
+npm install
+```
+
+### 2. Configure Environment Variables
 Create `.env.local` in the project root:
 ```env
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
+DATABASE_URL=postgresql://user:password@ep-your-database-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
+JWT_SECRET=your-secure-jwt-secret-key-ist
 ```
 
-### 4. Run Locally
+### 3. Run Development Server
 ```bash
-npm install
 npm run dev
 ```
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open **[http://localhost:3000](http://localhost:3000)** in your browser.
 
 ---
 
-## Phase Roadmap
-- **Phase 1 (Complete)**: Project setup, folder structure, SQL schema + RLS + DB functions, auth/login, responsive app shell.
-- **Phase 2**: Price List management + `pricing.ts` calculation engine with Vitest unit tests.
-- **Phase 3**: New Entry counter billing screen, atomic tokens (`#1, #2...`), today's list, edit/delete.
-- **Phase 4**: Account customers, credit billing, cash/UPI partial payments, ledger timeline.
-- **Phase 5**: Tailoring orders, status pipeline (Received -> Ready -> Delivered), delivery billing.
-- **Phase 6**: Shop expense management and auto-linked vendor order expenses.
-- **Phase 7**: Vendor orders with WhatsApp message format, A4 PDF generation, and payment flow.
-- **Phase 8**: Reports & Dashboard, sales vs collected, day-close drawer cash reconciliation, CSV export.
-- **Phase 9**: PWA setup (manifest + service worker), polish, Vercel deployment.
-
+<p align="center">
+  <sub>Crafted with ❤️ by Dineesh for my Mom · Arasi Iceland & Computers</sub>
+</p>
