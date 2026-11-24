@@ -51,6 +51,7 @@ export default function ReportsPage() {
   const [dateFilter, setDateFilter] = useState<'today' | 'yesterday' | 'week' | 'month' | 'custom'>('today');
   const [fromDate, setFromDate] = useState(today);
   const [toDate, setToDate] = useState(today);
+  const [comparisonMode, setComparisonMode] = useState<'all' | 'day' | 'week' | 'month'>('all');
 
   const { data: reportData } = useReports(fromDate, toDate);
 
@@ -366,39 +367,96 @@ export default function ReportsPage() {
         </div>
       </Card>
 
-      {/* Comparisons Chart: Day, Week, and Month */}
+      {/* Comparisons Chart: Day, Week, and Month (Customizable Selection) */}
       <Card className="p-5 sm:p-6 bg-white border border-slate-200 rounded-2xl shadow-xs">
         <CardHeader className="p-0 pb-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <CardTitle className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-                <span>Sales Comparisons (Day, Week & Month)</span>
+                <span>Sales Comparisons</span>
+                <span className="text-xs bg-sky-50 text-sky-700 px-2 py-0.5 rounded-full font-bold border border-sky-100">
+                  {comparisonMode === 'all'
+                    ? 'All Periods'
+                    : comparisonMode === 'day'
+                    ? 'Day vs Day'
+                    : comparisonMode === 'week'
+                    ? 'Week vs Week'
+                    : 'Month vs Month'}
+                </span>
               </CardTitle>
               <CardDescription className="text-xs text-slate-500 mt-0.5">
-                Simple comparison of current sales vs previous periods
+                Select a period below to compare current vs previous sales
               </CardDescription>
             </div>
 
-            {/* Quick summary chips */}
-            <div className="flex flex-wrap items-center gap-2 text-xs">
-              <span className="px-2.5 py-1 bg-sky-50 text-sky-700 rounded-lg font-bold border border-sky-100">
-                Today: {formatINR(comparisons.today)}
-              </span>
-              <span className="px-2.5 py-1 bg-purple-50 text-purple-700 rounded-lg font-bold border border-purple-100">
-                This Week: {formatINR(comparisons.thisWeek)}
-              </span>
-              <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-lg font-bold border border-emerald-100">
-                This Month: {formatINR(comparisons.thisMonth)}
-              </span>
+            {/* Interactive Mode Selector Pills */}
+            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl self-start sm:self-auto">
+              <button
+                type="button"
+                onClick={() => setComparisonMode('all')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  comparisonMode === 'all'
+                    ? 'bg-white text-slate-900 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                All 3
+              </button>
+              <button
+                type="button"
+                onClick={() => setComparisonMode('day')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  comparisonMode === 'day'
+                    ? 'bg-white text-sky-700 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Day
+              </button>
+              <button
+                type="button"
+                onClick={() => setComparisonMode('week')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  comparisonMode === 'week'
+                    ? 'bg-white text-purple-700 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Week
+              </button>
+              <button
+                type="button"
+                onClick={() => setComparisonMode('month')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  comparisonMode === 'month'
+                    ? 'bg-white text-emerald-700 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Month
+              </button>
             </div>
           </div>
         </CardHeader>
 
-        {/* 3 Summary Comparison Tiles */}
+        {/* 3 Clickable Summary Comparison Tiles */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
-          {/* Day */}
-          <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
-            <span className="text-xs font-bold text-slate-500 uppercase block">Today vs Yesterday</span>
+          {/* Day Tile */}
+          <button
+            type="button"
+            onClick={() => setComparisonMode('day')}
+            className={`p-3.5 rounded-xl border text-left transition-all ${
+              comparisonMode === 'day'
+                ? 'bg-sky-50/60 border-sky-400 ring-2 ring-sky-100 shadow-xs'
+                : 'bg-slate-50 border-slate-200 hover:bg-slate-100/70'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-500 uppercase block">Today vs Yesterday</span>
+              <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-sky-100 text-sky-700">
+                Daily
+              </span>
+            </div>
             <div className="flex items-baseline justify-between mt-1.5">
               <span className="text-xl font-black text-slate-900">{formatINR(comparisons.today)}</span>
               <span className="text-xs text-slate-500 font-medium">Y'day: {formatINR(comparisons.yesterday)}</span>
@@ -416,11 +474,24 @@ export default function ReportsPage() {
                 </span>
               )}
             </div>
-          </div>
+          </button>
 
-          {/* Week */}
-          <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
-            <span className="text-xs font-bold text-slate-500 uppercase block">This Week vs Last Week</span>
+          {/* Week Tile */}
+          <button
+            type="button"
+            onClick={() => setComparisonMode('week')}
+            className={`p-3.5 rounded-xl border text-left transition-all ${
+              comparisonMode === 'week'
+                ? 'bg-purple-50/60 border-purple-400 ring-2 ring-purple-100 shadow-xs'
+                : 'bg-slate-50 border-slate-200 hover:bg-slate-100/70'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-500 uppercase block">This Week vs Last Week</span>
+              <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-purple-100 text-purple-700">
+                Weekly
+              </span>
+            </div>
             <div className="flex items-baseline justify-between mt-1.5">
               <span className="text-xl font-black text-slate-900">{formatINR(comparisons.thisWeek)}</span>
               <span className="text-xs text-slate-500 font-medium">Last: {formatINR(comparisons.lastWeek)}</span>
@@ -438,11 +509,24 @@ export default function ReportsPage() {
                 </span>
               )}
             </div>
-          </div>
+          </button>
 
-          {/* Month */}
-          <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
-            <span className="text-xs font-bold text-slate-500 uppercase block">This Month vs Last Month</span>
+          {/* Month Tile */}
+          <button
+            type="button"
+            onClick={() => setComparisonMode('month')}
+            className={`p-3.5 rounded-xl border text-left transition-all ${
+              comparisonMode === 'month'
+                ? 'bg-emerald-50/60 border-emerald-400 ring-2 ring-emerald-100 shadow-xs'
+                : 'bg-slate-50 border-slate-200 hover:bg-slate-100/70'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-500 uppercase block">This Month vs Last Month</span>
+              <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700">
+                Monthly
+              </span>
+            </div>
             <div className="flex items-baseline justify-between mt-1.5">
               <span className="text-xl font-black text-slate-900">{formatINR(comparisons.thisMonth)}</span>
               <span className="text-xs text-slate-500 font-medium">Last: {formatINR(comparisons.lastMonth)}</span>
@@ -460,23 +544,90 @@ export default function ReportsPage() {
                 </span>
               )}
             </div>
-          </div>
+          </button>
         </div>
 
-        {/* Clean Comparison Bar Chart */}
+        {/* Clean Sleek Comparison Bar Chart with Controlled barSize */}
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={comparisonChartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-              <XAxis dataKey="period" tick={{ fontSize: 11, fontWeight: 600, fill: '#475569' }} />
-              <YAxis tick={{ fontSize: 11, fill: '#64748b' }} tickFormatter={(val) => `₹${val}`} />
-              <Tooltip
-                formatter={(val: number) => formatINR(val)}
-                contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
-              />
-              <Legend wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
-              <Bar dataKey="Current" name="Current Period (Today / This Week / This Month)" fill="#0284c7" radius={[6, 6, 0, 0]} />
-              <Bar dataKey="Previous" name="Previous Period (Yesterday / Last Week / Last Month)" fill="#cbd5e1" radius={[6, 6, 0, 0]} />
-            </BarChart>
+            {comparisonMode === 'all' ? (
+              <BarChart
+                data={[
+                  { period: 'Day', Current: comparisons.today, Previous: comparisons.yesterday },
+                  { period: 'Week', Current: comparisons.thisWeek, Previous: comparisons.lastWeek },
+                  { period: 'Month', Current: comparisons.thisMonth, Previous: comparisons.lastMonth },
+                ]}
+                margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                barGap={6}
+              >
+                <XAxis dataKey="period" tick={{ fontSize: 12, fontWeight: 700, fill: '#334155' }} />
+                <YAxis tick={{ fontSize: 11, fill: '#64748b' }} tickFormatter={(val) => `₹${val}`} />
+                <Tooltip
+                  formatter={(val: number) => formatINR(val)}
+                  contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
+                />
+                <Legend wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
+                <Bar dataKey="Current" name="Current" fill="#0284c7" radius={[5, 5, 0, 0]} barSize={26} />
+                <Bar dataKey="Previous" name="Previous" fill="#cbd5e1" radius={[5, 5, 0, 0]} barSize={26} />
+              </BarChart>
+            ) : comparisonMode === 'day' ? (
+              <BarChart
+                data={[
+                  { label: 'Today', amount: comparisons.today, fill: '#0284c7' },
+                  { label: 'Yesterday', amount: comparisons.yesterday, fill: '#94a3b8' },
+                ]}
+                margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+              >
+                <XAxis dataKey="label" tick={{ fontSize: 12, fontWeight: 700, fill: '#334155' }} />
+                <YAxis tick={{ fontSize: 11, fill: '#64748b' }} tickFormatter={(val) => `₹${val}`} />
+                <Tooltip
+                  formatter={(val: number) => formatINR(val)}
+                  contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
+                />
+                <Bar dataKey="amount" name="Sales (₹)" radius={[6, 6, 0, 0]} barSize={34}>
+                  <Cell fill="#0284c7" />
+                  <Cell fill="#94a3b8" />
+                </Bar>
+              </BarChart>
+            ) : comparisonMode === 'week' ? (
+              <BarChart
+                data={[
+                  { label: 'This Week', amount: comparisons.thisWeek, fill: '#8b5cf6' },
+                  { label: 'Last Week', amount: comparisons.lastWeek, fill: '#cbd5e1' },
+                ]}
+                margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+              >
+                <XAxis dataKey="label" tick={{ fontSize: 12, fontWeight: 700, fill: '#334155' }} />
+                <YAxis tick={{ fontSize: 11, fill: '#64748b' }} tickFormatter={(val) => `₹${val}`} />
+                <Tooltip
+                  formatter={(val: number) => formatINR(val)}
+                  contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
+                />
+                <Bar dataKey="amount" name="Sales (₹)" radius={[6, 6, 0, 0]} barSize={34}>
+                  <Cell fill="#8b5cf6" />
+                  <Cell fill="#cbd5e1" />
+                </Bar>
+              </BarChart>
+            ) : (
+              <BarChart
+                data={[
+                  { label: 'This Month', amount: comparisons.thisMonth, fill: '#10b981' },
+                  { label: 'Last Month', amount: comparisons.lastMonth, fill: '#cbd5e1' },
+                ]}
+                margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+              >
+                <XAxis dataKey="label" tick={{ fontSize: 12, fontWeight: 700, fill: '#334155' }} />
+                <YAxis tick={{ fontSize: 11, fill: '#64748b' }} tickFormatter={(val) => `₹${val}`} />
+                <Tooltip
+                  formatter={(val: number) => formatINR(val)}
+                  contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
+                />
+                <Bar dataKey="amount" name="Sales (₹)" radius={[6, 6, 0, 0]} barSize={34}>
+                  <Cell fill="#10b981" />
+                  <Cell fill="#cbd5e1" />
+                </Bar>
+              </BarChart>
+            )}
           </ResponsiveContainer>
         </div>
       </Card>
@@ -509,7 +660,7 @@ export default function ReportsPage() {
                       formatter={(val: number) => formatINR(val)}
                       contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
                     />
-                    <Bar dataKey="sales" name="Sales (₹)" radius={[8, 8, 0, 0]}>
+                    <Bar dataKey="sales" name="Sales (₹)" radius={[8, 8, 0, 0]} barSize={32}>
                       {salesByCategory.map((entry: CategorySale, index: number) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
