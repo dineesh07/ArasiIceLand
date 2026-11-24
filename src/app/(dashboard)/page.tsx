@@ -527,87 +527,250 @@ function NewEntryContent() {
         </div>
       )}
 
-      {/* Main Billing Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left: Customer Info + Service Picker */}
-        <div className="lg:col-span-7 space-y-4">
-          <Card className="p-4 relative">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="relative">
-                <label className="text-xs font-bold text-slate-600 block mb-1">
-                  Customer Name (Optional)
-                </label>
-                <Input
-                  ref={customerInputRef}
-                  placeholder="e.g. Ramesh, Priya (or leave empty)"
-                  value={customerName}
-                  onChange={(e) => handleNameChange(e.target.value)}
-                  onFocus={() => customerName && setShowSuggestions(true)}
-                  className="bg-slate-50 font-medium"
-                />
+      {/* Customer Info Card */}
+      <Card className="p-4 relative bg-white border border-slate-200 rounded-2xl shadow-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="relative">
+            <label className="text-xs font-bold text-slate-600 block mb-1">
+              Customer Name (Optional)
+            </label>
+            <Input
+              ref={customerInputRef}
+              placeholder="e.g. Ramesh, Priya (or leave empty)"
+              value={customerName}
+              onChange={(e) => handleNameChange(e.target.value)}
+              onFocus={() => customerName && setShowSuggestions(true)}
+              className="bg-slate-50 font-medium"
+            />
 
-                {/* Autocomplete Dropdown */}
-                {showSuggestions && customerSuggestions.length > 0 && (
-                  <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-30 max-h-48 overflow-y-auto divide-y divide-slate-100">
-                    {customerSuggestions.map((cust) => (
-                      <button
-                        key={cust.id}
-                        type="button"
-                        onClick={() => selectCustomer(cust)}
-                        className="w-full text-left p-3 hover:bg-sky-50 flex items-center justify-between transition-colors touch-target"
-                      >
-                        <div>
-                          <div className="font-bold text-slate-900 text-sm flex items-center gap-1.5">
-                            {cust.name}
-                            {cust.is_account && (
-                              <Badge variant="default" className="text-[10px]">
-                                Account
-                              </Badge>
-                            )}
-                          </div>
-                          {cust.phone && (
-                            <div className="text-xs text-slate-400">{cust.phone}</div>
-                          )}
-                        </div>
+            {/* Autocomplete Dropdown */}
+            {showSuggestions && customerSuggestions.length > 0 && (
+              <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-30 max-h-48 overflow-y-auto divide-y divide-slate-100">
+                {customerSuggestions.map((cust) => (
+                  <button
+                    key={cust.id}
+                    type="button"
+                    onClick={() => selectCustomer(cust)}
+                    className="w-full text-left p-3 hover:bg-sky-50 flex items-center justify-between transition-colors touch-target"
+                  >
+                    <div>
+                      <div className="font-bold text-slate-900 text-sm flex items-center gap-1.5">
+                        {cust.name}
                         {cust.is_account && (
-                          <div className="text-right">
-                            <span className="text-xs text-slate-500 block">Balance</span>
-                            <span className="text-xs font-bold text-red-600">
-                              {formatINR(cust.balance)}
-                            </span>
-                          </div>
+                          <Badge variant="default" className="text-[10px]">
+                            Account
+                          </Badge>
                         )}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-slate-600 block mb-1">
-                  Phone (Optional)
-                </label>
-                <Input
-                  placeholder="e.g. 9840012345"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="bg-slate-50 font-medium"
-                />
-              </div>
-            </div>
-
-            {selectedCustomerId && selectedCustomerBalance !== null && (
-              <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between text-xs">
-                <span className="font-bold text-amber-900 flex items-center gap-1.5">
-                  <CreditCard className="w-4 h-4 text-amber-600" />
-                  Account Customer Balance:
-                </span>
-                <span className="text-sm font-black text-amber-900">
-                  {formatINR(selectedCustomerBalance)}
-                </span>
+                      </div>
+                      {cust.phone && (
+                        <div className="text-xs text-slate-400">{cust.phone}</div>
+                      )}
+                    </div>
+                    {cust.is_account && (
+                      <div className="text-right">
+                        <span className="text-xs text-slate-500 block">Balance</span>
+                        <span className="text-xs font-bold text-red-600">
+                          {formatINR(cust.balance)}
+                        </span>
+                      </div>
+                    )}
+                  </button>
+                ))}
               </div>
             )}
+          </div>
+
+          <div>
+            <label className="text-xs font-bold text-slate-600 block mb-1">
+              Phone (Optional)
+            </label>
+            <Input
+              placeholder="e.g. 9840012345"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="bg-slate-50 font-medium"
+            />
+          </div>
+        </div>
+
+        {selectedCustomerId && selectedCustomerBalance !== null && (
+          <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between text-xs">
+            <span className="font-bold text-amber-900 flex items-center gap-1.5">
+              <CreditCard className="w-4 h-4 text-amber-600" />
+              Account Customer Balance:
+            </span>
+            <span className="text-sm font-black text-amber-900">
+              {formatINR(selectedCustomerBalance)}
+            </span>
+          </div>
+        )}
+      </Card>
+
+      {/* Main Billing Grid: Cart comes first on mobile so added items are immediately seen! */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Cart Line Items & Payment Actions (order-1 on mobile, order-2 on desktop) */}
+        <div className="order-1 lg:order-2 lg:col-span-5 space-y-4">
+          <Card className="border-slate-300 shadow-sm lg:sticky lg:top-4">
+            <CardHeader className="pb-3 border-b border-slate-100 flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-lg">
+                  {editingBillId ? 'Editing Bill' : 'Current Bill'}
+                </CardTitle>
+                <p className="text-xs text-slate-500">
+                  {cartItems.length} {cartItems.length === 1 ? 'item' : 'items'} in bill
+                </p>
+              </div>
+              {cartItems.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setCartItems([])}
+                  className="text-xs font-bold text-red-500 hover:text-red-700"
+                >
+                  Clear All
+                </button>
+              )}
+            </CardHeader>
+
+            <CardContent className="p-4 space-y-4">
+              {cartItems.length === 0 ? (
+                <div className="py-6 sm:py-12 text-center text-slate-400">
+                  <Receipt className="w-10 h-10 sm:w-12 sm:h-12 mx-auto text-slate-200 mb-2" />
+                  <p className="font-semibold text-slate-600 text-sm">No items added yet</p>
+                  <p className="text-xs mt-1 text-slate-400">
+                    Tap any ice cream item below to add it in 1 tap!
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3 max-h-[360px] overflow-y-auto pr-1">
+                  {cartItems.map((item, idx) => (
+                    <div
+                      key={`${item.service_id}-${idx}`}
+                      className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="font-bold text-slate-900 text-sm leading-tight">
+                            {item.service_name}
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            {formatINR(item.unit_rate)} each
+                            {item.min_charge && ` · min ${formatINR(item.min_charge)}`}
+                          </p>
+                        </div>
+                        <span className="font-black text-base text-slate-900">
+                          {formatINR(item.amount)}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-1 border-t border-slate-200/60">
+                        {item.isMinApplied ? (
+                          <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-md">
+                            min {formatINR(item.min_charge)} applied
+                          </span>
+                        ) : (
+                          <span />
+                        )}
+
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => updateItemQty(idx, item.quantity - 1)}
+                            className="w-7 h-7 rounded-lg bg-white border border-slate-300 flex items-center justify-center font-bold text-slate-700 hover:bg-slate-100 active:scale-95"
+                          >
+                            <Minus className="w-3.5 h-3.5" />
+                          </button>
+
+                          <input
+                            type="number"
+                            min="1"
+                            value={item.quantity}
+                            onChange={(e) => updateItemQty(idx, parseInt(e.target.value) || 1)}
+                            className="w-10 h-7 text-center font-bold bg-white border border-slate-300 rounded-lg text-xs"
+                          />
+
+                          <button
+                            type="button"
+                            onClick={() => updateItemQty(idx, item.quantity + 1)}
+                            className="w-7 h-7 rounded-lg bg-white border border-slate-300 flex items-center justify-center font-bold text-slate-700 hover:bg-slate-100 active:scale-95"
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => removeItem(idx)}
+                            className="p-1 text-slate-400 hover:text-red-600 rounded-lg ml-1"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Sticky Bill Total */}
+              <div className="pt-3 border-t border-slate-200">
+                <div className="flex items-baseline justify-between mb-3">
+                  <span className="text-sm sm:text-base font-bold text-slate-600">Total Amount:</span>
+                  <span className="text-2xl sm:text-3xl font-black text-slate-900">
+                    {formatINR(billTotal)}
+                  </span>
+                </div>
+
+                {/* Payment Action Buttons */}
+                <div className="space-y-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      type="button"
+                      disabled={saving || cartItems.length === 0}
+                      onClick={() => handleSaveBill('cash')}
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-11 text-sm shadow-xs flex items-center justify-center gap-1.5"
+                    >
+                      <Wallet className="w-4 h-4" />
+                      <span>{editingBillId ? 'Update Cash' : 'Pay Cash'}</span>
+                    </Button>
+
+                    <Button
+                      type="button"
+                      disabled={saving || cartItems.length === 0}
+                      onClick={() => handleSaveBill('upi')}
+                      className="bg-sky-600 hover:bg-sky-700 text-white font-bold h-11 text-sm shadow-xs flex items-center justify-center gap-1.5"
+                    >
+                      <Smartphone className="w-4 h-4" />
+                      <span>{editingBillId ? 'Update UPI' : 'Pay UPI'}</span>
+                    </Button>
+                  </div>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={saving || cartItems.length === 0 || !isAccountCustomer}
+                    onClick={() => handleSaveBill('account')}
+                    className={`w-full font-bold h-10 text-xs flex items-center justify-center gap-1.5 ${
+                      isAccountCustomer
+                        ? 'border-amber-400 text-amber-800 bg-amber-50 hover:bg-amber-100'
+                        : 'opacity-50 cursor-not-allowed border-slate-200 text-slate-400'
+                    }`}
+                  >
+                    <CreditCard className="w-4 h-4" />
+                    <span>
+                      {editingBillId
+                        ? 'Update to Account'
+                        : isAccountCustomer
+                        ? 'Add to Account'
+                        : 'Add to Account (Select Credit Customer First)'}
+                    </span>
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
           </Card>
+        </div>
+
+        {/* Left / Below: Service Picker & Ice Creams (order-2 on mobile, order-1 on desktop) */}
+        <div className="order-2 lg:order-1 lg:col-span-7 space-y-4">
 
           {/* Service Picker: Tabs & Search */}
           <div className="space-y-3">
@@ -619,9 +782,9 @@ function NewEntryContent() {
                   setSelectedSubcategoryId(null);
                   setServiceSearch('');
                 }}
-                className={`px-4 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-colors touch-target ${
+                className={`shrink-0 whitespace-nowrap px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-colors touch-target ${
                   activeCategory === 'all'
-                    ? 'bg-slate-900 text-white shadow-sm'
+                    ? 'bg-slate-900 text-white shadow-xs'
                     : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
                 }`}
               >
@@ -642,11 +805,11 @@ function NewEntryContent() {
                         setServiceSearch('');
                       }
                     }}
-                    className={`px-4 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-colors touch-target flex items-center gap-1.5 ${
+                    className={`shrink-0 whitespace-nowrap px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-colors touch-target flex items-center gap-1.5 ${
                       isTailoring
                         ? 'bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100'
                         : activeCategory === c.id
-                        ? 'bg-sky-600 text-white shadow-sm'
+                        ? 'bg-sky-600 text-white shadow-xs'
                         : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
                     }`}
                   >
@@ -903,167 +1066,6 @@ function NewEntryContent() {
               )}
             </div>
           )}
-        </div>
-
-        {/* Right: Cart Line Items & Payment Actions */}
-        <div className="lg:col-span-5 space-y-4">
-          <Card className="border-slate-300 shadow-sm sticky top-4">
-            <CardHeader className="pb-3 border-b border-slate-100 flex flex-row items-center justify-between">
-              <div>
-                <CardTitle className="text-lg">
-                  {editingBillId ? 'Editing Bill' : 'Current Bill'}
-                </CardTitle>
-                <p className="text-xs text-slate-500">
-                  {cartItems.length} {cartItems.length === 1 ? 'item' : 'items'} in bill
-                </p>
-              </div>
-              {cartItems.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setCartItems([])}
-                  className="text-xs font-bold text-red-500 hover:text-red-700"
-                >
-                  Clear All
-                </button>
-              )}
-            </CardHeader>
-
-            <CardContent className="p-4 space-y-4">
-              {cartItems.length === 0 ? (
-                <div className="py-12 text-center text-slate-400">
-                  <Receipt className="w-12 h-12 mx-auto text-slate-200 mb-2" />
-                  <p className="font-semibold text-slate-600">No items added yet</p>
-                  <p className="text-xs mt-1">
-                    Tap any service tile on the left to add it in 1 tap!
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-3 max-h-[380px] overflow-y-auto pr-1">
-                  {cartItems.map((item, idx) => (
-                    <div
-                      key={`${item.service_id}-${idx}`}
-                      className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2"
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <p className="font-bold text-slate-900 text-sm leading-tight">
-                            {item.service_name}
-                          </p>
-                          <p className="text-xs text-slate-500">
-                            {formatINR(item.unit_rate)} each
-                            {item.min_charge && ` · min ${formatINR(item.min_charge)}`}
-                          </p>
-                        </div>
-                        <span className="font-black text-base text-slate-900">
-                          {formatINR(item.amount)}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center justify-between pt-1 border-t border-slate-200/60">
-                        {item.isMinApplied ? (
-                          <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-md">
-                            min {formatINR(item.min_charge)} applied
-                          </span>
-                        ) : (
-                          <span />
-                        )}
-
-                        <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => updateItemQty(idx, item.quantity - 1)}
-                            className="w-8 h-8 rounded-lg bg-white border border-slate-300 flex items-center justify-center font-bold text-slate-700 hover:bg-slate-100 touch-target"
-                          >
-                            <Minus className="w-4 h-4" />
-                          </button>
-
-                          <input
-                            type="number"
-                            min="1"
-                            value={item.quantity}
-                            onChange={(e) => updateItemQty(idx, parseInt(e.target.value) || 1)}
-                            className="w-12 h-8 text-center font-bold bg-white border border-slate-300 rounded-lg text-sm"
-                          />
-
-                          <button
-                            type="button"
-                            onClick={() => updateItemQty(idx, item.quantity + 1)}
-                            className="w-8 h-8 rounded-lg bg-white border border-slate-300 flex items-center justify-center font-bold text-slate-700 hover:bg-slate-100 touch-target"
-                          >
-                            <Plus className="w-4 h-4" />
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => removeItem(idx)}
-                            className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Sticky Bill Total */}
-              <div className="pt-3 border-t border-slate-200">
-                <div className="flex items-baseline justify-between mb-4">
-                  <span className="text-base font-bold text-slate-600">Total Amount:</span>
-                  <span className="text-3xl font-black text-slate-900">
-                    {formatINR(billTotal)}
-                  </span>
-                </div>
-
-                {/* Big Payment Action Buttons */}
-                <div className="space-y-2">
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button
-                      type="button"
-                      disabled={saving || cartItems.length === 0}
-                      onClick={() => handleSaveBill('cash')}
-                      className="h-14 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-base flex items-center justify-center gap-2 shadow-sm touch-target"
-                    >
-                      <Wallet className="w-5 h-5" />
-                      <span>{editingBillId ? 'Update Cash' : 'Cash'}</span>
-                    </Button>
-
-                    <Button
-                      type="button"
-                      disabled={saving || cartItems.length === 0}
-                      onClick={() => handleSaveBill('upi')}
-                      className="h-14 rounded-2xl bg-sky-600 hover:bg-sky-700 text-white font-extrabold text-base flex items-center justify-center gap-2 shadow-sm touch-target"
-                    >
-                      <Smartphone className="w-5 h-5" />
-                      <span>{editingBillId ? 'Update UPI' : 'UPI'}</span>
-                    </Button>
-                  </div>
-
-                  <Button
-                    type="button"
-                    disabled={saving || cartItems.length === 0 || !isAccountCustomer}
-                    onClick={() => handleSaveBill('account')}
-                    variant="outline"
-                    className={`w-full h-12 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 touch-target ${
-                      isAccountCustomer
-                        ? 'border-amber-400 text-amber-800 bg-amber-50 hover:bg-amber-100'
-                        : 'opacity-50 cursor-not-allowed text-slate-400'
-                    }`}
-                  >
-                    <CreditCard className="w-4 h-4" />
-                    <span>
-                      {editingBillId
-                        ? 'Update to Account'
-                        : isAccountCustomer
-                        ? 'Add to Account'
-                        : 'Add to Account (Select Credit Customer First)'}
-                    </span>
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </div>

@@ -193,7 +193,7 @@ export default function ExpensesPage() {
         </div>
       </Card>
 
-      {/* Expenses Table */}
+      {/* Expenses List */}
       {isLoading && expenses.length === 0 ? (
         <div className="py-12 text-center text-slate-400 flex items-center justify-center gap-2">
           <RefreshCw className="w-5 h-5 animate-spin" />
@@ -206,64 +206,121 @@ export default function ExpensesPage() {
           <p className="text-xs text-slate-400">Tap "Add Expense" above to record an expense.</p>
         </Card>
       ) : (
-        <Card className="overflow-hidden bg-white">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-sm">
-              <thead>
-                <tr className="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  <th className="p-3.5 pl-5">Date</th>
-                  <th className="p-3.5">Category</th>
-                  <th className="p-3.5">Method</th>
-                  <th className="p-3.5">Note</th>
-                  <th className="p-3.5 text-right">Amount</th>
-                  <th className="p-3.5 pr-5 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {expenses.map((exp) => (
-                  <tr key={exp.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="p-3.5 pl-5 font-semibold text-slate-900 whitespace-nowrap">
+        <>
+          {/* Mobile View: Clean Responsive Cards (solves Image 3 table cut-off) */}
+          <div className="md:hidden space-y-3">
+            {expenses.map((exp) => (
+              <Card key={exp.id} className="p-4 bg-white border border-slate-200 shadow-xs space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <h3 className="font-bold text-slate-900 text-base leading-tight">
+                      {exp.category_name}
+                    </h3>
+                    <p className="text-xs text-slate-500 font-medium mt-0.5">
                       {formatISTDisplay(exp.expense_date)}
-                    </td>
-                    <td className="p-3.5">
-                      <span className="font-bold text-slate-800">{exp.category_name}</span>
-                      {exp.vendor_order_id && (
-                        <Badge variant="default" className="ml-2 text-[10px] bg-blue-100 text-blue-800 gap-1">
-                          <Truck className="w-3 h-3" />
-                          <span>Vendor Order #{exp.vendor_order_no}</span>
-                        </Badge>
-                      )}
-                    </td>
-                    <td className="p-3.5">
-                      <Badge
-                        variant={exp.method === 'cash' ? 'success' : 'default'}
-                        className="text-[10px] uppercase font-bold"
-                      >
-                        {exp.method}
-                      </Badge>
-                    </td>
-                    <td className="p-3.5 text-slate-500 text-xs max-w-xs truncate">
-                      {exp.note || '—'}
-                    </td>
-                    <td className="p-3.5 text-right font-black text-slate-900 text-base">
-                      {formatINR(exp.amount)}
-                    </td>
-                    <td className="p-3.5 pr-5 text-right">
-                      {!exp.vendor_order_id && (
-                        <button
-                          onClick={() => handleDeleteExpense(exp)}
-                          className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </p>
+                  </div>
+                  <span className="font-black text-lg text-slate-900 shrink-0">
+                    {formatINR(exp.amount)}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between pt-2 border-t border-slate-100 flex-wrap gap-2">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <Badge
+                      variant={exp.method === 'cash' ? 'success' : 'default'}
+                      className="text-[10px] uppercase font-bold"
+                    >
+                      {exp.method}
+                    </Badge>
+                    {exp.vendor_order_id && (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-md whitespace-nowrap">
+                        <Truck className="w-3 h-3" />
+                        <span>Vendor Order #{exp.vendor_order_no}</span>
+                      </span>
+                    )}
+                  </div>
+
+                  {!exp.vendor_order_id && (
+                    <button
+                      onClick={() => handleDeleteExpense(exp)}
+                      className="p-1 text-slate-400 hover:text-red-600 rounded-lg transition-colors ml-auto"
+                      title="Delete expense"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+
+                {exp.note && (
+                  <p className="text-xs text-slate-500 italic bg-slate-50 p-2 rounded-lg border border-slate-100 mt-1">
+                    "{exp.note}"
+                  </p>
+                )}
+              </Card>
+            ))}
           </div>
-        </Card>
+
+          {/* Desktop View: Full Data Table */}
+          <Card className="hidden md:block overflow-hidden bg-white">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-sm">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    <th className="p-3.5 pl-5">Date</th>
+                    <th className="p-3.5">Category</th>
+                    <th className="p-3.5">Method</th>
+                    <th className="p-3.5">Note</th>
+                    <th className="p-3.5 text-right">Amount</th>
+                    <th className="p-3.5 pr-5 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {expenses.map((exp) => (
+                    <tr key={exp.id} className="hover:bg-slate-50/80 transition-colors">
+                      <td className="p-3.5 pl-5 font-semibold text-slate-900 whitespace-nowrap">
+                        {formatISTDisplay(exp.expense_date)}
+                      </td>
+                      <td className="p-3.5">
+                        <span className="font-bold text-slate-800">{exp.category_name}</span>
+                        {exp.vendor_order_id && (
+                          <span className="inline-flex items-center gap-1 ml-2 text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-md whitespace-nowrap">
+                            <Truck className="w-3 h-3" />
+                            <span>Vendor Order #{exp.vendor_order_no}</span>
+                          </span>
+                        )}
+                      </td>
+                      <td className="p-3.5">
+                        <Badge
+                          variant={exp.method === 'cash' ? 'success' : 'default'}
+                          className="text-[10px] uppercase font-bold"
+                        >
+                          {exp.method}
+                        </Badge>
+                      </td>
+                      <td className="p-3.5 text-slate-500 text-xs max-w-xs truncate">
+                        {exp.note || '—'}
+                      </td>
+                      <td className="p-3.5 text-right font-black text-slate-900 text-base">
+                        {formatINR(exp.amount)}
+                      </td>
+                      <td className="p-3.5 pr-5 text-right">
+                        {!exp.vendor_order_id && (
+                          <button
+                            onClick={() => handleDeleteExpense(exp)}
+                            className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        </>
       )}
 
       {/* Add Expense Modal */}

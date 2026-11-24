@@ -564,23 +564,24 @@ export default function PriceListPage() {
         <div>
           <h1 className="text-2xl font-extrabold text-slate-900">Price List & Services</h1>
           <p className="text-sm text-slate-500 mt-0.5">
-            Manage counter rates for Internet Centre, Ice Cream, and Tailoring
+            Manage counter rates and ice cream varieties
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {isIceCreamCategoryActive && (
             <Button
               variant="outline"
+              size="sm"
               onClick={() => setManageGroupsOpen(true)}
-              className="flex items-center gap-2 font-bold text-xs h-11"
+              className="flex items-center gap-1.5 font-bold text-xs h-9"
             >
-              <SlidersHorizontal className="w-4 h-4 text-slate-600" />
+              <SlidersHorizontal className="w-3.5 h-3.5 text-slate-600" />
               <span>Manage Groups</span>
             </Button>
           )}
-          <Button onClick={openAddModal} className="flex items-center gap-2 shadow-sm font-bold text-xs h-11">
-            <Plus className="w-5 h-5" />
-            <span>Add New Service</span>
+          <Button size="sm" onClick={openAddModal} className="flex items-center gap-1.5 shadow-xs font-bold text-xs h-9">
+            <Plus className="w-4 h-4" />
+            <span>Add New Item</span>
           </Button>
         </div>
       </div>
@@ -591,9 +592,9 @@ export default function PriceListPage() {
           <div className="flex overflow-x-auto gap-2 no-scrollbar pb-1">
             <button
               onClick={() => setSelectedCategory('all')}
-              className={`px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-colors touch-target ${
+              className={`shrink-0 whitespace-nowrap px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-colors touch-target ${
                 selectedCategory === 'all'
-                  ? 'bg-sky-600 text-white shadow-sm'
+                  ? 'bg-sky-600 text-white shadow-xs'
                   : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
               }`}
             >
@@ -605,9 +606,9 @@ export default function PriceListPage() {
                 <button
                   key={c.id}
                   onClick={() => setSelectedCategory(c.id)}
-                  className={`px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-colors touch-target ${
+                  className={`shrink-0 whitespace-nowrap px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-colors touch-target ${
                     selectedCategory === c.id
-                      ? 'bg-sky-600 text-white shadow-sm'
+                      ? 'bg-sky-600 text-white shadow-xs'
                       : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
                   }`}
                 >

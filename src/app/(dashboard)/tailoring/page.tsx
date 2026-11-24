@@ -289,9 +289,9 @@ export default function TailoringPage() {
         <div className="flex overflow-x-auto gap-2 no-scrollbar pb-1">
           <button
             onClick={() => setActiveTab('pending')}
-            className={`px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-colors touch-target ${
+            className={`shrink-0 whitespace-nowrap px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-colors touch-target ${
               activeTab === 'pending'
-                ? 'bg-sky-600 text-white shadow-sm'
+                ? 'bg-sky-600 text-white shadow-xs'
                 : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
             }`}
           >
@@ -299,9 +299,9 @@ export default function TailoringPage() {
           </button>
           <button
             onClick={() => setActiveTab('ready')}
-            className={`px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-colors touch-target ${
+            className={`shrink-0 whitespace-nowrap px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-colors touch-target ${
               activeTab === 'ready'
-                ? 'bg-purple-600 text-white shadow-sm'
+                ? 'bg-purple-600 text-white shadow-xs'
                 : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
             }`}
           >
@@ -309,9 +309,9 @@ export default function TailoringPage() {
           </button>
           <button
             onClick={() => setActiveTab('delivered')}
-            className={`px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-colors touch-target ${
+            className={`shrink-0 whitespace-nowrap px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-colors touch-target ${
               activeTab === 'delivered'
-                ? 'bg-emerald-600 text-white shadow-sm'
+                ? 'bg-emerald-600 text-white shadow-xs'
                 : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
             }`}
           >
@@ -319,9 +319,9 @@ export default function TailoringPage() {
           </button>
           <button
             onClick={() => setActiveTab('all')}
-            className={`px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-colors touch-target ${
+            className={`shrink-0 whitespace-nowrap px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-colors touch-target ${
               activeTab === 'all'
-                ? 'bg-slate-900 text-white shadow-sm'
+                ? 'bg-slate-900 text-white shadow-xs'
                 : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
             }`}
           >

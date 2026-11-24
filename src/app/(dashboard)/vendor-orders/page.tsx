@@ -479,34 +479,34 @@ export default function VendorOrdersPage() {
                 </div>
 
                 <div className="mt-3 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 flex-wrap">
                     <a
                       href={buildVendorWhatsAppUrl(pdfData)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-green-50 text-green-700 hover:bg-green-100 text-xs font-bold border border-green-200 transition-colors touch-target"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-xs font-semibold border border-emerald-200 transition-colors h-8"
                     >
                       <MessageSquare className="w-3.5 h-3.5" />
-                      <span>Send on WhatsApp</span>
+                      <span>WhatsApp</span>
                     </a>
 
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => generateVendorOrderPdf(pdfData)}
-                      className="text-xs font-bold gap-1.5 h-9"
+                      className="text-xs font-semibold gap-1.5 h-8 px-2.5 rounded-lg border-slate-200"
                     >
                       <FileDown className="w-3.5 h-3.5" />
-                      <span>Download PDF</span>
+                      <span>PDF</span>
                     </Button>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
                     {order.status === 'ordered' && (
                       <Button
                         size="sm"
                         onClick={() => openDeliverDialog(order)}
-                        className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs h-9 gap-1"
+                        className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs h-8 px-3 rounded-lg gap-1 shadow-xs"
                       >
                         <CheckCircle2 className="w-3.5 h-3.5" />
                         <span>Mark Delivered</span>
@@ -517,16 +517,16 @@ export default function VendorOrdersPage() {
                       <Button
                         size="sm"
                         onClick={() => openPayDialog(order)}
-                        className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs h-9 gap-1"
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs h-8 px-3 rounded-lg gap-1 shadow-xs"
                       >
                         <Wallet className="w-3.5 h-3.5" />
-                        <span>Pay Vendor Order</span>
+                        <span>Pay Vendor</span>
                       </Button>
                     )}
 
                     {order.status === 'paid' && (
                       <span className="text-xs text-emerald-700 font-bold flex items-center gap-1">
-                        <CheckCircle2 className="w-4 h-4" /> Recorded in Expenses
+                        <CheckCircle2 className="w-3.5 h-3.5" /> Paid
                       </span>
                     )}
                   </div>
