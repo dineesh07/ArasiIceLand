@@ -36,7 +36,7 @@ export async function POST(request: Request) {
     // 30-day persistent cookie
     response.cookies.set(AUTH_COOKIE_NAME, token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: false, // Allows cookie on localhost, LAN IPs, and HTTP/HTTPS previews
       sameSite: 'lax',
       path: '/',
       maxAge: 30 * 24 * 60 * 60, // 30 days

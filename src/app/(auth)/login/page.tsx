@@ -46,8 +46,8 @@ export default function LoginPage() {
         return;
       }
 
-      router.push('/');
-      router.refresh();
+      // Hard redirect ensures cookies are committed and dashboard reloads cleanly
+      window.location.href = '/';
     } catch {
       setError('Connection error. Please try again.');
       setLoading(false);
