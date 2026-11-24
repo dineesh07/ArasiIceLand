@@ -32,7 +32,7 @@ export async function GET() {
       orders,
       payables: payables?.payables || 0,
       settings: settings || {
-        shop_name: 'Arasi Iceland',
+        shop_name: 'Arasi Iceland & Computers',
         shop_address: '',
         vendor_name: 'Distributor',
         vendor_phone: '',

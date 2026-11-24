@@ -31,8 +31,8 @@ const sfPro = localFont({
 });
 
 export const metadata: Metadata = {
-  title: 'Arasi Iceland',
-  description: 'Point of sale and shop management app for internet centre, ice cream, and tailoring - Arasi Iceland.',
+  title: 'Arasi Iceland & Computers',
+  description: 'Point of sale and shop management app for internet centre, ice cream, and tailoring - Arasi Iceland & Computers.',
   manifest: '/manifest.json',
   icons: {
     icon: [
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'Arasi Iceland',
+    title: 'Arasi Iceland & Computers',
   },
 };
 

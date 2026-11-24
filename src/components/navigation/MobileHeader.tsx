@@ -13,7 +13,7 @@ export function MobileHeader() {
         <div className="w-8 h-8 shrink-0">
           <Image
             src="/logo.png"
-            alt="Arasi Iceland"
+            alt="Arasi Iceland & Computers"
             width={32}
             height={32}
             className="w-full h-full drop-shadow-xs"
@@ -21,7 +21,7 @@ export function MobileHeader() {
           />
         </div>
         <div>
-          <h1 className="text-base font-bold text-slate-900 leading-tight">Arasi Iceland</h1>
+          <h1 className="text-sm font-bold text-slate-900 leading-tight">Arasi Iceland & Computers</h1>
           <p className="text-[11px] text-slate-500 font-medium">
             {formatISTDisplay(todayIST())}
           </p>

@@ -46,32 +46,32 @@ export function generateVendorOrderPdf(data: VendorOrderPdfData): void {
 
   // Store Brand Name (Clean, without the subtitle)
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(22);
+  doc.setFontSize(18);
   doc.setTextColor(15, 23, 42); // Slate 900
-  doc.text(data.shop_name || 'Arasi Iceland', 38, 21);
+  doc.text(data.shop_name || 'Arasi Iceland & Computers', 38, 20.5);
 
   if (data.shop_phone) {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9.5);
     doc.setTextColor(100, 116, 139); // Slate 500
-    doc.text(`Phone: ${data.shop_phone}`, 38, 27);
+    doc.text(`Phone: ${data.shop_phone}`, 38, 26.5);
   }
 
-  // Right Side: Purchase Order Badge & Number
+  // Right Side: Purchase Order Badge & Number (Positioned with plenty of breathing room)
   doc.setFillColor(240, 249, 255); // Sky 50
   doc.setDrawColor(186, 230, 253); // Sky 200
   doc.setLineWidth(0.3);
-  doc.roundedRect(138, 11, 56, 7.5, 2, 2, 'FD');
+  doc.roundedRect(144, 10, 50, 7.5, 2, 2, 'FD');
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8.5);
+  doc.setFontSize(8);
   doc.setTextColor(2, 132, 199); // Sky 600
-  doc.text('OFFICIAL PURCHASE ORDER', 166, 16, { align: 'center' });
+  doc.text('OFFICIAL PURCHASE ORDER', 169, 15, { align: 'center' });
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(18);
   doc.setTextColor(15, 23, 42);
-  doc.text(`#PO-${String(data.order_no).padStart(4, '0')}`, 194, 25.5, { align: 'right' });
+  doc.text(`#PO-${String(data.order_no).padStart(4, '0')}`, 194, 25, { align: 'right' });
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
@@ -82,7 +82,7 @@ export function generateVendorOrderPdf(data: VendorOrderPdfData): void {
   const cardY = 36;
   const cardHeight = data.shop_address ? 28 : 24;
 
-  // 3A. Left Card: HIGHLIGHTED BUYER (Arasi Iceland)
+  // 3A. Left Card: HIGHLIGHTED BUYER (Arasi Iceland & Computers)
   doc.setFillColor(240, 249, 255); // Soft Sky 50
   doc.setDrawColor(186, 230, 253); // Sky 200
   doc.setLineWidth(0.4);
@@ -94,9 +94,9 @@ export function generateVendorOrderPdf(data: VendorOrderPdfData): void {
   doc.text('ORDERED BY (BUYER)', 21, cardY + 6);
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(11);
+  doc.setFontSize(10.5);
   doc.setTextColor(12, 74, 110); // Sky 900
-  doc.text(data.shop_name || 'Arasi Iceland', 21, cardY + 12);
+  doc.text(data.shop_name || 'Arasi Iceland & Computers', 21, cardY + 12);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8.5);
@@ -232,7 +232,7 @@ export function generateVendorOrderPdf(data: VendorOrderPdfData): void {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
   doc.setTextColor(148, 163, 184);
-  doc.text('Arasi Iceland · Counter Point-of-Sale · Official Distributor Purchase Order', 16, 285);
+  doc.text('Arasi Iceland & Computers · Counter Point-of-Sale · Official Distributor Purchase Order', 16, 285);
   doc.text('Page 1 of 1', 194, 285, { align: 'right' });
 
   // Bottom color bar
@@ -240,14 +240,14 @@ export function generateVendorOrderPdf(data: VendorOrderPdfData): void {
   doc.rect(0, 294, 210, 3, 'F');
 
   // Save PDF
-  const cleanShopName = (data.shop_name || 'Arasi-Iceland').replace(/\s+/g, '-');
+  const cleanShopName = (data.shop_name || 'Arasi-Iceland-Computers').replace(/\s+/g, '-');
   const filename = `Purchase-Order-${data.order_no}-${cleanShopName}.pdf`;
   doc.save(filename);
 }
 
 export function buildVendorWhatsAppUrl(data: VendorOrderPdfData): string {
   const formattedDate = formatISTDisplay(data.order_date);
-  let text = `*${data.shop_name || 'Arasi Iceland'}* - Purchase Order #${data.order_no}\n`;
+  let text = `*${data.shop_name || 'Arasi Iceland & Computers'}* - Purchase Order #${data.order_no}\n`;
   text += `Date: ${formattedDate}\n\n`;
   text += `*Order Items:*\n`;
   data.items.forEach((item, idx) => {
@@ -261,7 +261,7 @@ export function buildVendorWhatsAppUrl(data: VendorOrderPdfData): string {
   if (data.note && data.note.trim()) {
     text += `Note: ${data.note.trim()}\n`;
   }
-  text += `\nThank you!\n${data.shop_name || 'Arasi Iceland'}`;
+  text += `\nThank you!\n${data.shop_name || 'Arasi Iceland & Computers'}`;
 
   const cleanPhone = (data.vendor_phone || '').replace(/\D/g, '');
   const internationalPhone = cleanPhone.length === 10 ? `91${cleanPhone}` : cleanPhone;

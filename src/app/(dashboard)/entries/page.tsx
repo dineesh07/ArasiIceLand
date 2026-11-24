@@ -664,8 +664,8 @@ export default function DailyEntriesPage() {
             >
               {/* Header */}
               <div className="text-center pb-3 border-b border-dashed border-slate-300">
-                <h2 className="text-xl font-black uppercase tracking-tight text-slate-900">
-                  Arasi Iceland
+                <h2 className="text-lg font-black uppercase tracking-tight text-slate-900">
+                  Arasi Iceland & Computers
                 </h2>
                 <p className="text-xs text-slate-500 font-medium">Ice Cream Parlour & Counter POS</p>
                 <div className="mt-2 flex items-center justify-center gap-4 text-xs text-slate-600">
@@ -736,8 +736,8 @@ export default function DailyEntriesPage() {
 
               {/* Footer */}
               <div className="text-center pt-3 border-t border-dashed border-slate-300 text-[11px] text-slate-400">
-                <p className="font-medium">Thank you for visiting Arasi Iceland!</p>
-                <p>Have a cool day!</p>
+                <p className="font-medium">Thank you for visiting Arasi Iceland & Computers!</p>
+                <p>Have a wonderful day!</p>
               </div>
             </div>
 

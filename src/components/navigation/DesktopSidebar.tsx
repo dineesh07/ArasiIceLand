@@ -55,7 +55,7 @@ export function DesktopSidebar({ overdueTailoringCount = 0 }: { overdueTailoring
         <div className="w-10 h-10 shrink-0">
           <Image
             src="/logo.png"
-            alt="Arasi Iceland"
+            alt="Arasi Iceland & Computers"
             width={40}
             height={40}
             className="w-full h-full drop-shadow-sm"
@@ -63,8 +63,8 @@ export function DesktopSidebar({ overdueTailoringCount = 0 }: { overdueTailoring
           />
         </div>
         <div>
-          <h1 className="font-bold text-lg text-slate-900 leading-tight">Arasi Iceland</h1>
-          <p className="text-xs text-slate-500 font-medium">Counter Point-of-Sale</p>
+          <h1 className="font-bold text-sm text-slate-900 leading-tight">Arasi Iceland & Computers</h1>
+          <p className="text-[11px] text-slate-500 font-medium">Counter Point-of-Sale</p>
         </div>
       </div>
 

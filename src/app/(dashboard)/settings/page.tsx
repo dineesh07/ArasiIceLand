@@ -35,7 +35,7 @@ export default function SettingsPage() {
   const router = useRouter();
 
   const [settings, setSettings] = useState<SettingsData>({
-    shop_name: 'Arasi Iceland',
+    shop_name: 'Arasi Iceland & Computers',
     shop_address: '',
     vendor_name: '',
     vendor_phone: '',
@@ -57,7 +57,7 @@ export default function SettingsPage() {
 
       if (setRes.settings) {
         setSettings({
-          shop_name: setRes.settings.shop_name || 'Arasi Iceland',
+          shop_name: setRes.settings.shop_name || 'Arasi Iceland & Computers',
           shop_address: setRes.settings.shop_address || '',
           vendor_name: setRes.settings.vendor_name || '',
           vendor_phone: setRes.settings.vendor_phone || '',

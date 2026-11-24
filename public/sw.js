@@ -1,5 +1,5 @@
-// Minimal PWA Service Worker for Arasi Iceland
-const CACHE_NAME = 'arasi-iceland-v2';
+// Minimal PWA Service Worker for Arasi Iceland & Computers
+const CACHE_NAME = 'arasi-iceland-v3';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
