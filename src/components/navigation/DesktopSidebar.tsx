@@ -62,9 +62,8 @@ export function DesktopSidebar({ overdueTailoringCount = 0 }: { overdueTailoring
             priority
           />
         </div>
-        <div>
-          <h1 className="font-bold text-sm text-slate-900 leading-tight">Arasi Iceland & Computers</h1>
-          <p className="text-[11px] text-slate-500 font-medium">Counter Point-of-Sale</p>
+        <div className="min-w-0">
+          <h1 className="font-extrabold text-sm text-slate-900 leading-snug">Arasi Iceland & Computers</h1>
         </div>
       </div>
 

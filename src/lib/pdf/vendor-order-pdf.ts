@@ -232,7 +232,7 @@ export function generateVendorOrderPdf(data: VendorOrderPdfData): void {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
   doc.setTextColor(148, 163, 184);
-  doc.text('Arasi Iceland & Computers · Counter Point-of-Sale · Official Distributor Purchase Order', 16, 285);
+  doc.text('Arasi Iceland & Computers · Official Distributor Purchase Order', 16, 285);
   doc.text('Page 1 of 1', 194, 285, { align: 'right' });
 
   // Bottom color bar

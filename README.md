@@ -1,6 +1,6 @@
 # Shop Manager (Arasi Shop)
 
-A point-of-sale and shop management web application tailored for a single shop owner in India operating:
+A modern shop management web application tailored for a single shop owner in India operating:
 1. **Internet Centre**: Printouts, Xerox, Typing, and Government Applications (Community Certificate, Aadhaar, PAN, etc.)
 2. **Ice Cream**: Arun Ice Creams menu
 3. **Tailoring**: Custom blouse and churidar orders

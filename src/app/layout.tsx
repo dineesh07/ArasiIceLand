@@ -32,7 +32,7 @@ const sfPro = localFont({
 
 export const metadata: Metadata = {
   title: 'Arasi Iceland & Computers',
-  description: 'Point of sale and shop management app for internet centre, ice cream, and tailoring - Arasi Iceland & Computers.',
+  description: 'Shop management app for internet centre, ice cream, and tailoring - Arasi Iceland & Computers.',
   manifest: '/manifest.json',
   icons: {
     icon: [

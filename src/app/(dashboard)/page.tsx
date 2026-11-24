@@ -446,10 +446,7 @@ function NewEntryContent() {
       {/* Top Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs">
         <div>
-          <span className="text-xs font-bold uppercase tracking-wider text-sky-600 bg-sky-50 px-2.5 py-1 rounded-md">
-            Counter Point of Sale
-          </span>
-          <h1 className="text-2xl font-extrabold text-slate-900 mt-1">New Entry</h1>
+          <h1 className="text-2xl font-extrabold text-slate-900">New Entry</h1>
           <p className="text-sm text-slate-500 flex items-center gap-1.5 mt-0.5 font-medium">
             <Calendar className="w-4 h-4 text-slate-400" />
             <span>Today: <strong>{formatISTDisplay(today, 'EEEE, dd MMMM yyyy')}</strong></span>
