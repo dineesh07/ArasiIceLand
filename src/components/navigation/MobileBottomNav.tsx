@@ -3,17 +3,17 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Receipt, Scissors, Users, BarChart3, MoreHorizontal } from 'lucide-react';
+import { ClipboardList, PlusCircle, Scissors, Users, BarChart3, MoreHorizontal } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function MobileBottomNav({ overdueTailoringCount = 0 }: { overdueTailoringCount?: number }) {
   const pathname = usePathname();
 
   const tabs = [
-    { name: 'New Entry', href: '/', icon: Receipt },
+    { name: 'Entries', href: '/entries', icon: ClipboardList },
+    { name: 'New Entry', href: '/', icon: PlusCircle },
     { name: 'Tailoring', href: '/tailoring', icon: Scissors, badge: overdueTailoringCount },
     { name: 'Accounts', href: '/accounts', icon: Users },
-    { name: 'Reports', href: '/reports', icon: BarChart3 },
     { name: 'More', href: '/more', icon: MoreHorizontal },
   ];
 

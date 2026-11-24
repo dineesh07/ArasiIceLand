@@ -10,6 +10,7 @@ import {
   Settings,
   LogOut,
   ChevronRight,
+  BarChart3,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 
@@ -20,6 +21,13 @@ export default function MorePage() {
     {
       title: 'Operations & Inventory',
       items: [
+        {
+          name: 'Reports & Analytics',
+          description: 'Sales summaries, monthly charts & revenue breakdown',
+          href: '/reports',
+          icon: BarChart3,
+          color: 'text-indigo-600 bg-indigo-50',
+        },
         {
           name: 'Expenses',
           description: 'Record rent, electricity, paper & stock expenses',

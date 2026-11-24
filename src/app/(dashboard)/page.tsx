@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useRef, useEffect, Suspense } from 'react';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   Receipt,
@@ -21,6 +22,7 @@ import {
   ArrowLeft,
   ChevronRight,
   X,
+  ClipboardList,
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -94,7 +96,17 @@ interface BillEntry {
 }
 
 export default function NewEntryPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-slate-400 font-medium">Loading Counter POS...</div>}>
+      <NewEntryContent />
+    </Suspense>
+  );
+}
+
+function NewEntryContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const editId = searchParams.get('edit');
   const queryClient = useQueryClient();
   const today = todayIST();
 
@@ -343,6 +355,9 @@ export default function NewEntryPage() {
       setSelectedCustomerId(null);
       setSelectedCustomerBalance(null);
       setEditingBillId(null);
+      if (editingBillId) {
+        router.replace('/');
+      }
 
       // Invalidate caches instantly
       queryClient.invalidateQueries({ queryKey: ['bills'] });
@@ -383,21 +398,27 @@ export default function NewEntryPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleDeleteBill = async (billId: string) => {
-    if (!confirm('Are you sure you want to delete this bill? It will be removed from totals.')) return;
-
-    try {
-      const res = await fetch(`/api/bills?id=${billId}`, { method: 'DELETE' });
-      if (res.ok) {
-        setToastMessage('Bill deleted successfully');
-        setTimeout(() => setToastMessage(null), 3000);
-        queryClient.invalidateQueries({ queryKey: ['bills'] });
-        queryClient.invalidateQueries({ queryKey: ['token-preview'] });
+  // Load bill for editing if editId is provided in URL
+  useEffect(() => {
+    if (!editId || services.length === 0) return;
+    let isCancelled = false;
+    async function loadBillToEdit() {
+      try {
+        const res = await fetch(`/api/bills?id=${editId}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.bill && !isCancelled) {
+          handleEditBill(data.bill);
+        }
+      } catch (err) {
+        console.error('Failed to load bill for editing', err);
       }
-    } catch {
-      alert('Failed to delete bill');
     }
-  };
+    loadBillToEdit();
+    return () => {
+      isCancelled = true;
+    };
+  }, [editId, services]);
 
   const filteredServices = services.filter((s) => {
     const matchesCategory =
@@ -435,22 +456,61 @@ export default function NewEntryPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-6">
-          <div className="text-left sm:text-right">
-            <p className="text-xs text-slate-400 font-semibold">Today's Total Collected</p>
-            <p className="text-2xl font-black text-slate-900">
+        <div className="flex items-center gap-3">
+          <Link href="/entries">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-10 text-xs font-bold text-slate-700 hover:text-slate-900 border-slate-200 gap-1.5 shadow-xs bg-white"
+            >
+              <ClipboardList className="w-4 h-4 text-sky-600" />
+              <span>Daily Entries</span>
+            </Button>
+          </Link>
+          <div className="h-8 w-px bg-slate-200 hidden sm:block" />
+          <div className="text-left sm:text-right hidden sm:block">
+            <p className="text-xs text-slate-400 font-semibold">Today's Total</p>
+            <p className="text-xl font-black text-slate-900">
               {formatINR(totalCollected)}
             </p>
           </div>
-          <div className="h-10 w-px bg-slate-200 hidden sm:block" />
-          <div className="text-left sm:text-right bg-sky-50 px-3.5 py-2 rounded-xl border border-sky-100">
-            <p className="text-[11px] text-sky-700 font-bold uppercase tracking-wide">Next Token Preview</p>
-            <p className="text-2xl font-black text-sky-700">
+          <div className="h-8 w-px bg-slate-200 hidden sm:block" />
+          <div className="text-left sm:text-right bg-sky-50 px-3 py-1.5 rounded-xl border border-sky-100">
+            <p className="text-[10px] text-sky-700 font-bold uppercase tracking-wide">Next Token</p>
+            <p className="text-xl font-black text-sky-700">
               #{nextToken}
             </p>
           </div>
         </div>
       </div>
+
+      {/* Editing Bill Banner */}
+      {editingBillId && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-amber-900 shadow-xs">
+          <div className="flex items-center gap-2.5">
+            <Edit2 className="w-5 h-5 text-amber-600 shrink-0" />
+            <div>
+              <p className="font-bold text-sm">Editing Bill Record</p>
+              <p className="text-xs text-amber-700">Make changes to customer, items, or quantities below, then click an update payment button.</p>
+            </div>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setEditingBillId(null);
+              setCartItems([]);
+              setCustomerName('');
+              setPhone('');
+              setSelectedCustomerId(null);
+              router.replace('/');
+            }}
+            className="text-xs font-bold text-amber-800 border-amber-300 hover:bg-amber-100 shrink-0"
+          >
+            Cancel Editing
+          </Button>
+        </div>
+      )}
 
       {/* Success Toast */}
       {toastMessage && (
@@ -967,7 +1027,7 @@ export default function NewEntryPage() {
                       className="h-14 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-base flex items-center justify-center gap-2 shadow-sm touch-target"
                     >
                       <Wallet className="w-5 h-5" />
-                      <span>Cash</span>
+                      <span>{editingBillId ? 'Update Cash' : 'Cash'}</span>
                     </Button>
 
                     <Button
@@ -977,7 +1037,7 @@ export default function NewEntryPage() {
                       className="h-14 rounded-2xl bg-sky-600 hover:bg-sky-700 text-white font-extrabold text-base flex items-center justify-center gap-2 shadow-sm touch-target"
                     >
                       <Smartphone className="w-5 h-5" />
-                      <span>UPI</span>
+                      <span>{editingBillId ? 'Update UPI' : 'UPI'}</span>
                     </Button>
                   </div>
 
@@ -994,7 +1054,11 @@ export default function NewEntryPage() {
                   >
                     <CreditCard className="w-4 h-4" />
                     <span>
-                      Add to Account {isAccountCustomer ? '' : '(Select Credit Customer First)'}
+                      {editingBillId
+                        ? 'Update to Account'
+                        : isAccountCustomer
+                        ? 'Add to Account'
+                        : 'Add to Account (Select Credit Customer First)'}
                     </span>
                   </Button>
                 </div>
@@ -1002,112 +1066,6 @@ export default function NewEntryPage() {
             </CardContent>
           </Card>
         </div>
-      </div>
-
-      {/* Today's Entries List */}
-      <div className="space-y-3 pt-6 border-t border-slate-200">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-xl font-extrabold text-slate-900">Today's Entries</h2>
-            <p className="text-xs text-slate-500">
-              {todayBills.length} {todayBills.length === 1 ? 'bill' : 'bills'} recorded today
-            </p>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => refetchBills()}
-            className="gap-1 text-xs"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            <span>Refresh</span>
-          </Button>
-        </div>
-
-        {todayBills.length === 0 ? (
-          <Card className="p-8 text-center text-slate-400">
-            <Receipt className="w-10 h-10 mx-auto text-slate-300 mb-2" />
-            <p className="font-semibold text-slate-700">No bills saved yet today</p>
-            <p className="text-xs text-slate-400">Bills created today will appear here.</p>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {todayBills.map((bill) => {
-              const displayName = bill.customer_name || (bill.token_no ? `#${bill.token_no}` : 'Walk-in');
-              return (
-                <Card key={bill.id} className="p-4 hover:shadow-md transition-shadow bg-white">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2">
-                      {bill.token_no ? (
-                        <span className="w-10 h-10 rounded-xl bg-sky-100 text-sky-800 font-black text-base flex items-center justify-center">
-                          #{bill.token_no}
-                        </span>
-                      ) : (
-                        <span className="w-10 h-10 rounded-xl bg-purple-100 text-purple-800 font-bold text-sm flex items-center justify-center">
-                          {bill.customer_name?.charAt(0).toUpperCase() || 'C'}
-                        </span>
-                      )}
-                      <div>
-                        <p className="font-bold text-slate-900 text-base leading-tight">
-                          {displayName}
-                        </p>
-                        {bill.phone && (
-                          <p className="text-xs text-slate-400 font-medium">{bill.phone}</p>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="text-right">
-                      <p className="text-lg font-black text-slate-900">{formatINR(bill.total)}</p>
-                      <Badge
-                        variant={
-                          bill.payment_method === 'cash'
-                            ? 'success'
-                            : bill.payment_method === 'upi'
-                            ? 'default'
-                            : 'warning'
-                        }
-                        className="text-[10px] uppercase font-bold"
-                      >
-                        {bill.payment_method}
-                      </Badge>
-                    </div>
-                  </div>
-
-                  {/* Items summary */}
-                  <div className="mt-3 pt-2 border-t border-slate-100 text-xs text-slate-600 line-clamp-2">
-                    {bill.items?.map((it, idx) => (
-                      <span key={idx} className="mr-2">
-                        {it.service_name} ×{it.quantity}
-                      </span>
-                    ))}
-                  </div>
-
-                  {/* Actions */}
-                  <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-end gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEditBill(bill)}
-                      className="h-8 text-xs font-bold gap-1"
-                    >
-                      <Edit2 className="w-3 h-3" />
-                      <span>Edit</span>
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDeleteBill(bill.id)}
-                      className="h-8 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </Button>
-                  </div>
-                </Card>
-              );
-            })}
-          </div>
-        )}
       </div>
     </div>
   );

@@ -275,50 +275,54 @@ export default function ReportsPage() {
       </div>
 
       {/* Day Close Drawer Reconciliation Card */}
-      <Card className="p-5 bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl shadow-md">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-700">
+      <Card className="p-5 sm:p-6 bg-white border border-slate-200 rounded-2xl shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-100">
           <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-sky-400 bg-slate-800 px-2 py-0.5 rounded">
+            <span className="text-xs font-bold uppercase tracking-wider text-sky-700 bg-sky-50 border border-sky-100 px-2.5 py-1 rounded-md">
               Daily Drawer Audit
             </span>
-            <h2 className="text-xl font-bold text-white mt-1">
+            <h2 className="text-xl font-extrabold text-slate-900 mt-2">
               Day Close Drawer Check ({formatISTDisplay(dayClose.date)})
             </h2>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-500 mt-0.5 font-medium">
               Reconcile physical cash expected in your shop counter drawer
             </p>
           </div>
 
-          <div className="text-left sm:text-right">
-            <span className="text-xs font-bold text-slate-400 block uppercase">Expected Cash in Drawer</span>
-            <span className="text-3xl font-black text-emerald-400">
+          <div className="text-left sm:text-right bg-slate-50 sm:bg-transparent p-3 sm:p-0 rounded-xl border sm:border-0 border-slate-100">
+            <span className="text-xs font-bold text-slate-400 block uppercase tracking-wider">Expected Cash in Drawer</span>
+            <span className={`text-3xl font-black tracking-tight ${dayClose.expectedDrawerCash >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
               {formatINR(dayClose.expectedDrawerCash)}
             </span>
           </div>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 text-xs">
-          <div className="p-3 bg-slate-800/80 rounded-xl">
-            <span className="text-slate-400 block font-semibold">Cash Collected (+)</span>
-            <span className="text-lg font-bold text-white mt-1 block">
+          <div className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl">
+            <span className="text-slate-500 block font-semibold">Cash Collected (+)</span>
+            <span className="text-lg font-black text-slate-900 mt-1 block">
               {formatINR(dayClose.cashCollected)}
             </span>
           </div>
-          <div className="p-3 bg-slate-800/80 rounded-xl">
-            <span className="text-slate-400 block font-semibold">Cash Expenses (-)</span>
-            <span className="text-lg font-bold text-red-400 mt-1 block">
+          <div className="p-3.5 bg-rose-50/60 border border-rose-200/80 rounded-xl">
+            <span className="text-rose-700 block font-semibold">Cash Expenses (-)</span>
+            <span className="text-lg font-black text-rose-700 mt-1 block">
               {formatINR(dayClose.cashExpenses)}
             </span>
           </div>
-          <div className="p-3 bg-slate-800/80 rounded-xl">
-            <span className="text-slate-400 block font-semibold">UPI Collected (Bank)</span>
-            <span className="text-lg font-bold text-sky-400 mt-1 block">
+          <div className="p-3.5 bg-sky-50/60 border border-sky-200/80 rounded-xl">
+            <span className="text-sky-700 block font-semibold">UPI Collected (Bank)</span>
+            <span className="text-lg font-black text-sky-800 mt-1 block">
               {formatINR(dayClose.upiCollected)}
             </span>
           </div>
-          <div className="p-3 bg-emerald-950/60 border border-emerald-500/30 rounded-xl">
-            <span className="text-emerald-300 block font-bold">Drawer Cash Net</span>
-            <span className="text-lg font-black text-emerald-300 mt-1 block">
+          <div className={`p-3.5 rounded-xl border ${
+            dayClose.expectedDrawerCash >= 0 
+              ? 'bg-emerald-50/80 border-emerald-200 text-emerald-800' 
+              : 'bg-rose-50/80 border-rose-200 text-rose-800'
+          }`}>
+            <span className="block font-bold">Drawer Cash Net</span>
+            <span className="text-lg font-black mt-1 block">
               {formatINR(dayClose.expectedDrawerCash)}
             </span>
           </div>

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import {
+  ClipboardList,
   Receipt,
   Scissors,
   Users,
@@ -30,6 +31,7 @@ export function DesktopSidebar({ overdueTailoringCount = 0 }: { overdueTailoring
   const router = useRouter();
 
   const navItems: NavItem[] = [
+    { name: 'Daily Entries', href: '/entries', icon: ClipboardList },
     { name: 'New Entry', href: '/', icon: Receipt },
     { name: 'Tailoring', href: '/tailoring', icon: Scissors, badge: overdueTailoringCount },
     { name: 'Accounts', href: '/accounts', icon: Users },

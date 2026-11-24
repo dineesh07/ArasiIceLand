@@ -5,6 +5,41 @@ import { todayIST } from '@/lib/dates';
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (id) {
+      const bill = await queryOne(`
+        select 
+          b.id, b.bill_date, b.token_no, b.customer_id, b.customer_name, 
+          b.phone, b.payment_method, b.total, b.tailoring_order_id, b.created_at,
+          c.name as account_customer_name,
+          json_agg(
+            json_build_object(
+              'id', bi.id,
+              'service_id', bi.service_id,
+              'category_id', bi.category_id,
+              'service_name', bi.service_name,
+              'pricing_type', bi.pricing_type,
+              'quantity', bi.quantity,
+              'unit_rate', bi.unit_rate,
+              'min_charge', bi.min_charge,
+              'amount', bi.amount
+            )
+          ) as items
+        from bills b
+        left join customers c on c.id = b.customer_id
+        left join bill_items bi on bi.bill_id = b.id
+        where b.id = $1 and b.deleted_at is null
+        group by b.id, c.name
+      `, [id]);
+
+      if (!bill) {
+        return NextResponse.json({ error: 'Bill not found' }, { status: 404 });
+      }
+
+      return NextResponse.json({ bill });
+    }
+
     const date = searchParams.get('date') || todayIST();
 
     const bills = await query(`
