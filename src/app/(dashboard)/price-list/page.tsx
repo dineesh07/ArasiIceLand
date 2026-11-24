@@ -62,7 +62,9 @@ export default function PriceListPage() {
   const iceCreamCategory = (categories as any[]).find((c) =>
     c.name.toLowerCase().includes('ice')
   );
-  const isIceCreamCategoryActive = selectedCategory === iceCreamCategory?.id;
+  const isIceCreamCategoryActive =
+    selectedCategory === iceCreamCategory?.id ||
+    selectedCategory === 'all';
   const { data: subcategories = [] } = useSubcategories(iceCreamCategory?.id);
 
   // Collapsible groups state (key: subcategory_id or '__none__', value: isCollapsed boolean)

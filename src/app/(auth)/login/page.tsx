@@ -3,15 +3,15 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Store, Lock, Mail, Loader2, AlertCircle, KeyRound, Sparkles } from 'lucide-react';
+import { Store, Lock, User, Loader2, AlertCircle, KeyRound, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState('owner@shop.com');
-  const [password, setPassword] = useState('password123');
+  const [username, setUsername] = useState('kalai');
+  const [password, setPassword] = useState('Arasi@123');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -24,7 +24,7 @@ export default function LoginPage() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ username, password }),
       });
 
       const data = await res.json();
@@ -44,8 +44,8 @@ export default function LoginPage() {
   };
 
   const handleFillDemo = () => {
-    setEmail('owner@shop.com');
-    setPassword('password123');
+    setUsername('kalai');
+    setPassword('Arasi@123');
     setError(null);
   };
 
@@ -67,24 +67,24 @@ export default function LoginPage() {
             Arasi Iceland & Computers
           </h1>
           <p className="text-sm sm:text-base text-slate-600 font-medium">
-            Internet Centre · Ice Cream · Tailoring
+            Arun Ice Creams Parlour
           </p>
         </div>
 
         <Card className="border-slate-200 shadow-md">
           <CardHeader className="text-center pb-4">
-            <CardTitle className="text-xl">Owner Login</CardTitle>
+            <CardTitle className="text-xl">Shop Login</CardTitle>
             <CardDescription className="text-slate-500">
-              Sign in to manage your counter and bills
+              Sign in to manage your counter sales and bills
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {/* Quick Demo Helper Card */}
+            {/* Quick Helper Card */}
             <div className="mb-5 p-3.5 bg-sky-50 border border-sky-200 rounded-xl space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-sky-900 flex items-center gap-1.5">
                   <KeyRound className="w-4 h-4 text-sky-600" />
-                  Your Database Owner Account
+                  Your Shop Account
                 </span>
                 <button
                   type="button"
@@ -96,8 +96,8 @@ export default function LoginPage() {
                 </button>
               </div>
               <div className="text-xs text-sky-800 space-y-0.5 font-mono">
-                <div>Email: <strong>owner@shop.com</strong></div>
-                <div>Pass:  <strong>password123</strong></div>
+                <div>Username: <strong>kalai</strong></div>
+                <div>Password: <strong>Arasi@123</strong></div>
               </div>
             </div>
 
@@ -111,15 +111,15 @@ export default function LoginPage() {
 
               <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                  <Mail className="w-4 h-4 text-slate-400" /> Email
+                  <User className="w-4 h-4 text-slate-400" /> Username
                 </label>
                 <Input
-                  type="email"
+                  type="text"
                   required
-                  placeholder="owner@shop.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  autoComplete="email"
+                  placeholder="e.g. kalai"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  autoComplete="username"
                   className="bg-white"
                 />
               </div>

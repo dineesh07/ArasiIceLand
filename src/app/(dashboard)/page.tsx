@@ -129,7 +129,9 @@ function NewEntryContent() {
   const [serviceSearch, setServiceSearch] = useState('');
 
   const iceCreamCategory = (categories as any[]).find((c) => c.name.toLowerCase().includes('ice'));
-  const isIceCreamActive = activeCategory === iceCreamCategory?.id;
+  const isIceCreamActive =
+    activeCategory === iceCreamCategory?.id ||
+    (activeCategory === 'all' && Boolean(iceCreamCategory));
   const { data: subcategories = [] } = useSubcategories(iceCreamCategory?.id);
   const iceCreamServices = services.filter((s) => s.category_id === iceCreamCategory?.id);
 

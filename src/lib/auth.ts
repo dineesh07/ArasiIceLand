@@ -101,14 +101,22 @@ export async function verifySessionToken(token: string): Promise<AppUser | null>
   }
 }
 
-export async function verifyUserCredentials(email: string, password: string): Promise<AppUser | null> {
+export async function verifyUserCredentials(identifier: string, password: string): Promise<AppUser | null> {
   const user = await queryOne<{
     id: string;
     email: string;
-    password_hash: string;
     name: string;
+    username?: string;
+    password_hash: string;
     role: string;
-  }>('select id, email, password_hash, name, role from app_users where lower(email) = lower($1)', [email]);
+  }>(
+    `select id, email, name, username, password_hash, role 
+     from app_users 
+     where lower(email) = lower($1) 
+        or lower(name) = lower($1)
+        or (username is not null and lower(username) = lower($1))`,
+    [identifier.trim()]
+  );
 
   if (!user) return null;
 

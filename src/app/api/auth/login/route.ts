@@ -3,19 +3,21 @@ import { verifyUserCredentials, createSessionToken, AUTH_COOKIE_NAME } from '@/l
 
 export async function POST(request: Request) {
   try {
-    const { email, password } = await request.json();
+    const body = await request.json();
+    const identifier = (body.username || body.email || '').trim();
+    const password = body.password;
 
-    if (!email || !password) {
+    if (!identifier || !password) {
       return NextResponse.json(
-        { error: 'Email and password are required' },
+        { error: 'Username/Email and password are required' },
         { status: 400 }
       );
     }
 
-    const user = await verifyUserCredentials(email, password);
+    const user = await verifyUserCredentials(identifier, password);
     if (!user) {
       return NextResponse.json(
-        { error: 'Invalid email or password. Please try again.' },
+        { error: 'Invalid username or password. Please try again.' },
         { status: 401 }
       );
     }
