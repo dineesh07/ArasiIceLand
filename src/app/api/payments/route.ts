@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
 import { queryOne } from '@/lib/db';
 import { todayIST } from '@/lib/dates';
+import { getActiveWorkspace } from '@/lib/auth';
 
 export async function POST(request: Request) {
   try {
+    const workspace = await getActiveWorkspace();
     const body = await request.json();
     const { customer_id, amount, method, paid_on, note } = body;
 
@@ -21,8 +23,8 @@ export async function POST(request: Request) {
     }
 
     const payment = await queryOne(`
-      insert into account_payments (customer_id, amount, method, paid_on, note)
-      values ($1, $2, $3, coalesce($4, $5), $6)
+      insert into account_payments (customer_id, amount, method, paid_on, note, workspace)
+      values ($1, $2, $3, coalesce($4, $5), $6, $7)
       returning *
     `, [
       customer_id,
@@ -30,7 +32,8 @@ export async function POST(request: Request) {
       method,
       paid_on || null,
       todayIST(),
-      note ? note.trim() : null
+      note ? note.trim() : null,
+      workspace
     ]);
 
     // Fetch updated balance
@@ -47,4 +50,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
-

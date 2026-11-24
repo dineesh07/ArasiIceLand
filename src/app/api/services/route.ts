@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
 import { query, queryOne } from '@/lib/db';
+import { getActiveWorkspace } from '@/lib/auth';
 
 export async function GET(request: Request) {
   try {
+    const workspace = await getActiveWorkspace();
     const { searchParams } = new URL(request.url);
     const categoryId = searchParams.get('categoryId');
 
@@ -19,6 +21,10 @@ export async function GET(request: Request) {
     `;
     const conditions: string[] = [];
     const params: any[] = [];
+
+    if (workspace === 'kalai') {
+      conditions.push("lower(c.name) = 'ice cream'");
+    }
 
     if (categoryId) {
       params.push(categoryId);

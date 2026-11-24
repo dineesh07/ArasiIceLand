@@ -158,3 +158,11 @@ export async function getCurrentUser(): Promise<AppUser | null> {
   if (!token) return null;
   return await verifySessionToken(token);
 }
+
+export async function getActiveWorkspace(): Promise<'kalai' | 'owner'> {
+  const user = await getCurrentUser();
+  if (user && (user.name?.toLowerCase() === 'kalai' || user.email?.toLowerCase().includes('kalai'))) {
+    return 'kalai';
+  }
+  return 'owner';
+}

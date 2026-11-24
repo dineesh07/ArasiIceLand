@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
 import { query, queryOne } from '@/lib/db';
 import { todayIST } from '@/lib/dates';
+import { getActiveWorkspace } from '@/lib/auth';
 
 export async function GET(request: Request) {
   try {
+    const workspace = await getActiveWorkspace();
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
@@ -11,7 +13,7 @@ export async function GET(request: Request) {
       const bill = await queryOne(`
         select 
           b.id, b.bill_date, b.token_no, b.customer_id, b.customer_name, 
-          b.phone, b.payment_method, b.total, b.tailoring_order_id, b.created_at,
+          b.phone, b.payment_method, b.total, b.tailoring_order_id, b.created_at, b.workspace,
           c.name as account_customer_name,
           json_agg(
             json_build_object(
@@ -29,9 +31,9 @@ export async function GET(request: Request) {
         from bills b
         left join customers c on c.id = b.customer_id
         left join bill_items bi on bi.bill_id = b.id
-        where b.id = $1 and b.deleted_at is null
+        where b.id = $1 and b.workspace = $2 and b.deleted_at is null
         group by b.id, c.name
-      `, [id]);
+      `, [id, workspace]);
 
       if (!bill) {
         return NextResponse.json({ error: 'Bill not found' }, { status: 404 });
@@ -45,7 +47,7 @@ export async function GET(request: Request) {
     const bills = await query(`
       select 
         b.id, b.bill_date, b.token_no, b.customer_id, b.customer_name, 
-        b.phone, b.payment_method, b.total, b.tailoring_order_id, b.created_at,
+        b.phone, b.payment_method, b.total, b.tailoring_order_id, b.created_at, b.workspace,
         c.name as account_customer_name,
         json_agg(
           json_build_object(
@@ -63,12 +65,12 @@ export async function GET(request: Request) {
       from bills b
       left join customers c on c.id = b.customer_id
       left join bill_items bi on bi.bill_id = b.id
-      where b.bill_date = $1 and b.deleted_at is null
+      where b.bill_date = $1 and b.workspace = $2 and b.deleted_at is null
       group by b.id, c.name
       order by b.created_at desc
-    `, [date]);
+    `, [date, workspace]);
 
-    // Today's summary totals
+    // Today's summary totals for active workspace
     const summary = await queryOne(`
       select 
         coalesce(sum(case when payment_method = 'cash' then total else 0 end), 0) as cash_total,
@@ -77,8 +79,8 @@ export async function GET(request: Request) {
         coalesce(sum(total), 0) as grand_total,
         count(*) as count
       from bills
-      where bill_date = $1 and deleted_at is null
-    `, [date]);
+      where bill_date = $1 and workspace = $2 and deleted_at is null
+    `, [date, workspace]);
 
     return NextResponse.json({ bills, summary });
   } catch (error: any) {
@@ -88,6 +90,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const workspace = await getActiveWorkspace();
     const body = await request.json();
     const { bill_date, customer_id, customer_name, phone, payment_method, items } = body;
 
@@ -101,16 +104,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Bill must contain at least one line item' }, { status: 400 });
     }
 
-    // Call atomic transactional create_bill PL/pgSQL function
+    // Call atomic transactional create_bill PL/pgSQL function with workspace
     const result = await queryOne(`
-      select create_bill($1, $2, $3, $4, $5, $6::jsonb) as bill
+      select create_bill($1, $2, $3, $4, $5, $6::jsonb, $7) as bill
     `, [
       targetDate,
       customer_id || null,
       customer_name ? customer_name.trim() : null,
       phone ? phone.trim() : null,
       payment_method,
-      JSON.stringify(items)
+      JSON.stringify(items),
+      workspace
     ]);
 
     return NextResponse.json({ bill: result?.bill }, { status: 201 });
@@ -161,4 +165,3 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
-

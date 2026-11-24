@@ -1,15 +1,17 @@
 import { NextResponse } from 'next/server';
 import { query, queryOne } from '@/lib/db';
 import { todayIST } from '@/lib/dates';
+import { getActiveWorkspace } from '@/lib/auth';
 
 export async function GET() {
   try {
+    const workspace = await getActiveWorkspace();
     const today = todayIST();
 
     const orders = await query(`
       select 
         o.id, o.customer_name, o.phone, o.received_on, o.delivery_date, 
-        o.status, o.total, o.note, o.delivered_at, o.customer_id, o.created_at,
+        o.status, o.total, o.note, o.delivered_at, o.customer_id, o.created_at, o.workspace,
         case 
           when o.status = 'delivered' then 'delivered'
           when o.delivery_date < $1 then 'overdue'
@@ -28,12 +30,13 @@ export async function GET() {
         ) as items
       from tailoring_orders o
       left join tailoring_order_items oi on oi.order_id = o.id
+      where o.workspace = $2
       group by o.id
       order by 
         case when o.status = 'delivered' then 1 else 0 end asc,
         o.delivery_date asc,
         o.created_at desc
-    `, [today]);
+    `, [today, workspace]);
 
     const overdueCount = orders.filter((o: any) => o.status !== 'delivered' && o.urgency === 'overdue').length;
     const pendingTotal = orders
@@ -48,6 +51,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const workspace = await getActiveWorkspace();
     const body = await request.json();
     const { customer_name, phone, delivery_date, received_on, note, customer_id, items } = body;
 
@@ -68,8 +72,8 @@ export async function POST(request: Request) {
 
     const order = await queryOne(`
       insert into tailoring_orders (
-        customer_name, phone, received_on, delivery_date, note, customer_id, total
-      ) values ($1, $2, coalesce($3, $4), $5, $6, $7, $8)
+        customer_name, phone, received_on, delivery_date, note, customer_id, total, workspace
+      ) values ($1, $2, coalesce($3, $4), $5, $6, $7, $8, $9)
       returning *
     `, [
       customer_name.trim(),
@@ -79,7 +83,8 @@ export async function POST(request: Request) {
       delivery_date,
       note ? note.trim() : null,
       customer_id || null,
-      total
+      total,
+      workspace
     ]);
 
     // Insert order items
@@ -160,4 +165,3 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
-

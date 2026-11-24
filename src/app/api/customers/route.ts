@@ -1,18 +1,22 @@
 import { NextResponse } from 'next/server';
 import { query, queryOne } from '@/lib/db';
+import { getActiveWorkspace } from '@/lib/auth';
 
 export async function GET(request: Request) {
   try {
+    const workspace = await getActiveWorkspace();
     const { searchParams } = new URL(request.url);
     const accountsOnly = searchParams.get('accountsOnly') === 'true';
 
     let sql = `
       select 
-        c.id, c.name, c.phone, c.is_account, c.active, c.created_at,
+        c.id, c.name, c.phone, c.is_account, c.active, c.created_at, c.workspace,
         get_customer_account_balance(c.id) as balance
       from customers c
-      where c.active = true
+      where c.active = true and c.workspace = $1
     `;
+
+    const params: any[] = [workspace];
 
     if (accountsOnly) {
       sql += ' and c.is_account = true';
@@ -20,7 +24,7 @@ export async function GET(request: Request) {
 
     sql += ' order by balance desc, c.name asc';
 
-    const customers = await query(sql);
+    const customers = await query(sql, params);
 
     // Calculate total outstanding balance
     const totalOutstanding = customers.reduce((sum: number, c: any) => sum + (c.balance > 0 ? c.balance : 0), 0);
@@ -33,6 +37,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const workspace = await getActiveWorkspace();
     const body = await request.json();
     const { name, phone, is_account } = body;
 
@@ -41,10 +46,10 @@ export async function POST(request: Request) {
     }
 
     const customer = await queryOne(`
-      insert into customers (name, phone, is_account)
-      values ($1, $2, coalesce($3, false))
+      insert into customers (name, phone, is_account, workspace)
+      values ($1, $2, coalesce($3, false), $4)
       returning *
-    `, [name.trim(), phone ? phone.trim() : null, is_account]);
+    `, [name.trim(), phone ? phone.trim() : null, is_account, workspace]);
 
     return NextResponse.json({ customer }, { status: 201 });
   } catch (error: any) {
@@ -61,25 +66,18 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: 'Customer ID is required' }, { status: 400 });
     }
 
-    const updated = await queryOne(`
+    const customer = await queryOne(`
       update customers set
         name = coalesce($1, name),
-        phone = $2,
+        phone = coalesce($2, phone),
         is_account = coalesce($3, is_account),
         active = coalesce($4, active)
       where id = $5
       returning *
-    `, [
-      name ? name.trim() : null,
-      phone === undefined ? null : phone ? phone.trim() : null,
-      is_account,
-      active,
-      id
-    ]);
+    `, [name ? name.trim() : null, phone ? phone.trim() : null, is_account, active, id]);
 
-    return NextResponse.json({ customer: updated });
+    return NextResponse.json({ customer });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
-

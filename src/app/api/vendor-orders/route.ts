@@ -1,13 +1,16 @@
 import { NextResponse } from 'next/server';
 import { query, queryOne } from '@/lib/db';
 import { todayIST } from '@/lib/dates';
+import { getActiveWorkspace } from '@/lib/auth';
 
 export async function GET() {
   try {
+    const workspace = await getActiveWorkspace();
+
     const orders = await query(`
       select 
         vo.id, vo.order_no, vo.order_date, vo.status, vo.quoted_amount,
-        vo.delivered_on, vo.paid_on, vo.payment_method, vo.note, vo.created_at,
+        vo.delivered_on, vo.paid_on, vo.payment_method, vo.note, vo.created_at, vo.workspace,
         json_agg(
           json_build_object(
             'id', voi.id,
@@ -18,12 +21,17 @@ export async function GET() {
         ) as items
       from vendor_orders vo
       left join vendor_order_items voi on voi.order_id = vo.id
+      where vo.workspace = $1
       group by vo.id
       order by vo.order_date desc, vo.order_no desc
-    `);
+    `, [workspace]);
 
-    // Vendor payables total (quoted_amount where status = 'delivered')
-    const payables = await queryOne('select get_vendor_payables() as payables');
+    // Vendor payables total for active workspace
+    const payables = await queryOne(`
+      select coalesce(sum(quoted_amount), 0) as payables
+      from vendor_orders
+      where status = 'delivered' and workspace = $1
+    `, [workspace]);
 
     // Fetch shop & vendor settings
     const settings = await queryOne('select shop_name, shop_address, vendor_name, vendor_phone, shop_phone from settings where id = 1');
@@ -45,6 +53,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const workspace = await getActiveWorkspace();
     const body = await request.json();
     const { order_date, note, items } = body;
 
@@ -57,10 +66,10 @@ export async function POST(request: Request) {
       : todayIST();
 
     const order = await queryOne(`
-      insert into vendor_orders (order_date, status, note)
-      values ($1, 'ordered', $2)
+      insert into vendor_orders (order_date, status, note, workspace)
+      values ($1, 'ordered', $2, $3)
       returning *
-    `, [finalDate, note && note.trim() ? note.trim() : null]);
+    `, [finalDate, note && note.trim() ? note.trim() : null, workspace]);
 
     if (!order) {
       return NextResponse.json({ error: 'Failed to create order record' }, { status: 500 });
@@ -105,4 +114,3 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
-

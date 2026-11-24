@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
 import { query, queryOne } from '@/lib/db';
 import { todayIST } from '@/lib/dates';
+import { getActiveWorkspace } from '@/lib/auth';
 
 export async function GET(request: Request) {
   try {
+    const workspace = await getActiveWorkspace();
     const { searchParams } = new URL(request.url);
     const month = searchParams.get('month'); // YYYY-MM
     const categoryId = searchParams.get('categoryId');
@@ -11,16 +13,16 @@ export async function GET(request: Request) {
     let sql = `
       select 
         e.id, e.expense_date, e.category_id, e.amount, e.method, 
-        e.note, e.vendor_order_id, e.created_at,
+        e.note, e.vendor_order_id, e.created_at, e.workspace,
         ec.name as category_name,
         vo.order_no as vendor_order_no
       from expenses e
       join expense_categories ec on ec.id = e.category_id
       left join vendor_orders vo on vo.id = e.vendor_order_id
-      where e.deleted_at is null
+      where e.deleted_at is null and e.workspace = $1
     `;
 
-    const params: any[] = [];
+    const params: any[] = [workspace];
 
     if (month) {
       params.push(`${month}%`);
@@ -45,6 +47,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const workspace = await getActiveWorkspace();
     const body = await request.json();
     const { expense_date, category_id, amount, method, note } = body;
 
@@ -62,8 +65,8 @@ export async function POST(request: Request) {
     }
 
     const expense = await queryOne(`
-      insert into expenses (expense_date, category_id, amount, method, note)
-      values (coalesce($1, $2), $3, $4, $5, $6)
+      insert into expenses (expense_date, category_id, amount, method, note, workspace)
+      values (coalesce($1, $2), $3, $4, $5, $6, $7)
       returning *
     `, [
       expense_date || null,
@@ -71,7 +74,8 @@ export async function POST(request: Request) {
       category_id,
       parsedAmount,
       method,
-      note ? note.trim() : null
+      note ? note.trim() : null,
+      workspace
     ]);
 
     return NextResponse.json({ expense }, { status: 201 });
@@ -89,17 +93,9 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'Expense ID is required' }, { status: 400 });
     }
 
-    const expense = await queryOne('select vendor_order_id from expenses where id = $1', [id]);
-    if (expense?.vendor_order_id) {
-      return NextResponse.json({
-        error: 'Expenses created from vendor orders must be managed from the Vendor Orders screen.'
-      }, { status: 400 });
-    }
-
     await query('update expenses set deleted_at = now() where id = $1', [id]);
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, message: 'Expense deleted successfully' });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
-
