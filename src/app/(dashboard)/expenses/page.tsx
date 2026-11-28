@@ -209,15 +209,15 @@ export default function ExpensesPage() {
 
       {/* Top Summary Cards: Today + Shop vs Personal */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <Card className="p-4 bg-gradient-to-br from-slate-900 to-slate-800 text-white border-slate-800">
+        <Card className="p-4 bg-white border-slate-200">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-300">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
               Today&apos;s Total Expenses
             </span>
-            <Calendar className="w-4 h-4 text-sky-400" />
+            <Calendar className="w-4 h-4 text-slate-500" />
           </div>
-          <p className="text-2xl sm:text-3xl font-black mt-1.5">{formatINR(todayTotal)}</p>
-          <p className="text-xs text-slate-300 mt-1">
+          <p className="text-2xl sm:text-3xl font-black text-slate-900 mt-1.5">{formatINR(todayTotal)}</p>
+          <p className="text-xs text-slate-500 font-medium mt-1">
             Shop: {formatINR(todayShopTotal)} · Personal: {formatINR(todayPersonalTotal)}
           </p>
         </Card>
@@ -353,7 +353,7 @@ export default function ExpensesPage() {
               onClick={() => setSelectedExpenseType('all')}
               className={`shrink-0 whitespace-nowrap px-3.5 py-2 rounded-xl text-xs font-bold transition-colors ${
                 selectedExpenseType === 'all'
-                  ? 'bg-slate-900 text-white'
+                  ? 'bg-sky-600 text-white shadow-xs'
                   : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
               }`}
             >
