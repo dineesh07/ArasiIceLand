@@ -260,55 +260,45 @@ export default function VendorOrdersPage() {
     }
   };
 
-  const openDeliverDialog = (order: VendorOrder) => {
+  const openDeliverAndPayDialog = (order: VendorOrder) => {
     setActiveOrder(order);
     setQuotedAmount(order.quoted_amount ? order.quoted_amount.toString() : '');
-    setDeliveryDate(today);
-    setDeliverModalOpen(true);
-  };
-
-  const handleMarkDelivered = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!activeOrder) return;
-
-    const amt = parseInt(quotedAmount);
-    if (!amt || amt <= 0) {
-      alert('Please enter a valid quoted bill amount from the vendor');
-      return;
-    }
-
-    try {
-      const res = await fetch('/api/vendor-orders', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: activeOrder.id,
-          status: 'delivered',
-          quoted_amount: amt,
-          delivered_on: deliveryDate,
-        }),
-      });
-
-      if (res.ok) {
-        setDeliverModalOpen(false);
-        queryClient.invalidateQueries({ queryKey: ['vendor-orders'] });
-        queryClient.invalidateQueries({ queryKey: ['reports'] });
-      }
-    } catch {
-      alert('Failed to mark delivered');
-    }
-  };
-
-  const openPayDialog = (order: VendorOrder) => {
-    setActiveOrder(order);
     setPayMethod('cash');
     setPayDate(today);
     setPayModalOpen(true);
   };
 
+  const handleDeleteOrder = async (order: VendorOrder) => {
+    if (order.status !== 'ordered') return;
+    if (!confirm(`Are you sure you want to delete Order #${order.order_no}?`)) return;
+
+    try {
+      const res = await fetch(`/api/vendor-orders?id=${order.id}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        queryClient.invalidateQueries({ queryKey: ['vendor-orders'] });
+        queryClient.invalidateQueries({ queryKey: ['reports'] });
+      } else {
+        const err = await res.json();
+        alert(err.error || 'Failed to delete order');
+      }
+    } catch {
+      alert('Failed to delete order');
+    }
+  };
+
   const handlePayOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeOrder) return;
+
+    const needsAmount = activeOrder.status === 'ordered';
+    const parsedAmt = parseInt(quotedAmount);
+    if (needsAmount && (!parsedAmt || parsedAmt <= 0)) {
+      alert('Please enter a valid bill amount');
+      return;
+    }
+
     setPaying(true);
 
     try {
@@ -319,6 +309,7 @@ export default function VendorOrdersPage() {
           order_id: activeOrder.id,
           payment_method: payMethod,
           date: payDate,
+          quoted_amount: needsAmount ? parsedAmt : undefined,
         }),
       });
 
@@ -329,10 +320,10 @@ export default function VendorOrdersPage() {
         queryClient.invalidateQueries({ queryKey: ['reports'] });
       } else {
         const err = await res.json();
-        alert(err.error || 'Failed to record payment');
+        alert(err.error || 'Failed to record delivery & payment');
       }
     } catch {
-      alert('Failed to pay vendor order');
+      alert('Failed to record delivery & payment');
     } finally {
       setPaying(false);
     }
@@ -501,22 +492,34 @@ export default function VendorOrdersPage() {
                     </Button>
                   </div>
 
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 flex-wrap">
                     {order.status === 'ordered' && (
-                      <Button
-                        size="sm"
-                        onClick={() => openDeliverDialog(order)}
-                        className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs h-8 px-3 rounded-lg gap-1 shadow-xs"
-                      >
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        <span>Mark Delivered</span>
-                      </Button>
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteOrder(order)}
+                          className="inline-flex items-center gap-1 px-2.5 h-8 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 border border-red-200/80 text-xs font-semibold transition-colors"
+                          title="Delete order"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>Delete</span>
+                        </button>
+
+                        <Button
+                          size="sm"
+                          onClick={() => openDeliverAndPayDialog(order)}
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs h-8 px-3 rounded-lg gap-1 shadow-xs"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>Mark Delivered & Paid</span>
+                        </Button>
+                      </>
                     )}
 
                     {order.status === 'delivered' && (
                       <Button
                         size="sm"
-                        onClick={() => openPayDialog(order)}
+                        onClick={() => openDeliverAndPayDialog(order)}
                         className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs h-8 px-3 rounded-lg gap-1 shadow-xs"
                       >
                         <Wallet className="w-3.5 h-3.5" />
@@ -812,121 +815,96 @@ export default function VendorOrdersPage() {
         </form>
       </Modal>
 
-      {/* Mark Delivered Modal */}
-      <Modal
-        isOpen={deliverModalOpen && !!activeOrder}
-        onClose={() => setDeliverModalOpen(false)}
-        title="Mark Order Delivered"
-        maxWidth="md"
-      >
-        <form onSubmit={handleMarkDelivered} className="space-y-4">
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-slate-700">Delivered On *</label>
-            <CustomDatePicker
-              required
-              value={deliveryDate}
-              onChange={(val) => setDeliveryDate(val)}
-            />
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-slate-700">Quoted Bill Amount (₹) *</label>
-            <Input
-              type="number"
-              min="1"
-              required
-              placeholder="e.g. 1500"
-              value={quotedAmount}
-              onChange={(e) => setQuotedAmount(e.target.value)}
-              className="text-lg font-bold"
-            />
-            <p className="text-[11px] text-slate-400">
-              This amount will show as payable until payment is recorded.
-            </p>
-          </div>
-
-          <div className="flex items-center justify-end gap-2 pt-3 border-t">
-            <Button type="button" variant="outline" onClick={() => setDeliverModalOpen(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" className="font-bold bg-amber-600 hover:bg-amber-700 text-white">
-              Save Delivered
-            </Button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* Pay Order Modal */}
+      {/* Deliver & Pay Order Modal (1-step) */}
       <Modal
         isOpen={payModalOpen && !!activeOrder}
         onClose={() => setPayModalOpen(false)}
-        title={activeOrder ? `Pay Vendor Order #${activeOrder.order_no}` : 'Pay Vendor Order'}
+        title={
+          activeOrder
+            ? activeOrder.status === 'ordered'
+              ? `Deliver & Pay Order #${activeOrder.order_no}`
+              : `Pay Vendor Order #${activeOrder.order_no}`
+            : 'Deliver & Pay Order'
+        }
         maxWidth="md"
       >
         {activeOrder && (
-          <>
-            <div className="p-4 bg-slate-50 rounded-xl text-center mb-4">
-              <p className="text-xs font-bold text-slate-400 uppercase">Amount to Pay</p>
-              <p className="text-3xl font-black text-slate-900 mt-1">
-                {formatINR(activeOrder.quoted_amount)}
-              </p>
-            </div>
-
-            <form onSubmit={handlePayOrder} className="space-y-4">
+          <form onSubmit={handlePayOrder} className="space-y-4">
+            {activeOrder.status === 'ordered' ? (
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Payment Method *</label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setPayMethod('cash')}
-                    className={`p-3 rounded-xl border-2 font-bold text-sm flex items-center justify-center gap-2 touch-target ${
-                      payMethod === 'cash'
-                        ? 'border-emerald-600 bg-emerald-50 text-emerald-800'
-                        : 'border-slate-200 bg-white text-slate-600'
-                    }`}
-                  >
-                    <Wallet className="w-4 h-4" />
-                    <span>Cash</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setPayMethod('upi')}
-                    className={`p-3 rounded-xl border-2 font-bold text-sm flex items-center justify-center gap-2 touch-target ${
-                      payMethod === 'upi'
-                        ? 'border-sky-600 bg-sky-50 text-sky-800'
-                        : 'border-slate-200 bg-white text-slate-600'
-                    }`}
-                  >
-                    <Smartphone className="w-4 h-4" />
-                    <span>UPI / GPay</span>
-                  </button>
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Payment Date *</label>
-                <CustomDatePicker
+                <label className="text-xs font-bold text-slate-700">Total Bill Amount (₹) *</label>
+                <Input
+                  type="number"
+                  min="1"
                   required
-                  value={payDate}
-                  onChange={(val) => setPayDate(val)}
+                  placeholder="e.g. 1500"
+                  value={quotedAmount}
+                  onChange={(e) => setQuotedAmount(e.target.value)}
+                  className="text-lg font-bold"
                 />
               </div>
-
-              <div className="flex items-center justify-end gap-2 pt-3 border-t">
-                <Button type="button" variant="outline" onClick={() => setPayModalOpen(false)}>
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={paying}
-                  className="font-bold bg-emerald-600 hover:bg-emerald-700 text-white"
-                >
-                  {paying ? 'Recording...' : 'Confirm Payment'}
-                </Button>
+            ) : (
+              <div className="p-4 bg-slate-50 rounded-xl text-center">
+                <p className="text-xs font-bold text-slate-400 uppercase">Amount to Pay</p>
+                <p className="text-3xl font-black text-slate-900 mt-1">
+                  {formatINR(activeOrder.quoted_amount)}
+                </p>
               </div>
-            </form>
-          </>
+            )}
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-700">Payment Method *</label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPayMethod('cash')}
+                  className={`p-3 rounded-xl border-2 font-bold text-sm flex items-center justify-center gap-2 touch-target ${
+                    payMethod === 'cash'
+                      ? 'border-emerald-600 bg-emerald-50 text-emerald-800'
+                      : 'border-slate-200 bg-white text-slate-600'
+                  }`}
+                >
+                  <Wallet className="w-4 h-4" />
+                  <span>Cash</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setPayMethod('upi')}
+                  className={`p-3 rounded-xl border-2 font-bold text-sm flex items-center justify-center gap-2 touch-target ${
+                    payMethod === 'upi'
+                      ? 'border-sky-600 bg-sky-50 text-sky-800'
+                      : 'border-slate-200 bg-white text-slate-600'
+                  }`}
+                >
+                  <Smartphone className="w-4 h-4" />
+                  <span>UPI / GPay</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-700">Delivery & Payment Date *</label>
+              <CustomDatePicker
+                required
+                value={payDate}
+                onChange={(val) => setPayDate(val)}
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-3 border-t">
+              <Button type="button" variant="outline" onClick={() => setPayModalOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={paying}
+                className="font-bold bg-emerald-600 hover:bg-emerald-700 text-white"
+              >
+                {paying ? 'Saving...' : 'Confirm Delivered & Paid'}
+              </Button>
+            </div>
+          </form>
         )}
       </Modal>
     </div>

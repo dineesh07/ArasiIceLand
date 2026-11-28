@@ -114,3 +114,36 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+
+export async function DELETE(request: Request) {
+  try {
+    const workspace = await getActiveWorkspace();
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json({ error: 'Order ID is required' }, { status: 400 });
+    }
+
+    const existing = await queryOne(
+      'select id, status from vendor_orders where id = $1 and workspace = $2',
+      [id, workspace]
+    );
+
+    if (!existing) {
+      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+    }
+
+    if (existing.status !== 'ordered') {
+      return NextResponse.json(
+        { error: 'Delivered or paid vendor orders cannot be deleted' },
+        { status: 400 }
+      );
+    }
+
+    await query('delete from vendor_orders where id = $1 and workspace = $2', [id, workspace]);
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
