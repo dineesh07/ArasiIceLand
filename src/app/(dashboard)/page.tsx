@@ -67,6 +67,7 @@ interface Customer {
 interface LineItem {
   service_id: string;
   category_id: string;
+  category_name?: string;
   service_name: string;
   pricing_type: PricingType;
   unit_rate: number;
@@ -74,6 +75,7 @@ interface LineItem {
   quantity: number;
   amount: number;
   isMinApplied: boolean;
+  isCustomAmount?: boolean;
 }
 
 interface BillItemSummary {
@@ -150,6 +152,8 @@ function NewEntryContent() {
 
   // Cart Line Items
   const [cartItems, setCartItems] = useState<LineItem[]>([]);
+  const [editingAmountIdx, setEditingAmountIdx] = useState<number | null>(null);
+  const [editingAmountVal, setEditingAmountVal] = useState<string>('');
   const [saving, setSaving] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -188,11 +192,6 @@ function NewEntryContent() {
 
   // Add service to line items (Instant 0ms click response)
   const addServiceToCart = (srv: Service) => {
-    if (srv.category_name.toLowerCase().includes('tailor')) {
-      router.push('/tailoring');
-      return;
-    }
-
     const displayName = formatServiceName(srv.name, srv.size_label);
 
     setCartItems((prev) => {
@@ -213,9 +212,11 @@ function NewEntryContent() {
 
         updated[existingIdx] = {
           ...updated[existingIdx],
+          category_name: srv.category_name,
           quantity: newQty,
           amount: newAmt,
           isMinApplied,
+          isCustomAmount: false,
         };
         return updated;
       } else {
@@ -235,6 +236,7 @@ function NewEntryContent() {
           {
             service_id: srv.id,
             category_id: srv.category_id,
+            category_name: srv.category_name,
             service_name: displayName,
             pricing_type: srv.pricing_type,
             unit_rate: srv.rate,
@@ -242,10 +244,45 @@ function NewEntryContent() {
             quantity: 1,
             amount: amt,
             isMinApplied,
+            isCustomAmount: false,
           },
         ];
       }
     });
+  };
+
+  const isAmountEditable = (item: LineItem) => {
+    const catName = (
+      item.category_name ||
+      (categories as any[]).find((c) => c.id === item.category_id)?.name ||
+      ''
+    ).toLowerCase();
+    return catName.includes('internet') || catName.includes('tailor');
+  };
+
+  const startEditAmount = (idx: number, currentAmount: number) => {
+    setEditingAmountIdx(idx);
+    setEditingAmountVal(String(currentAmount));
+  };
+
+  const commitEditAmount = (idx: number) => {
+    const parsed = parseInt(editingAmountVal, 10);
+    if (!isNaN(parsed) && parsed >= 0) {
+      setCartItems((prev) => {
+        const updated = [...prev];
+        if (updated[idx]) {
+          updated[idx] = {
+            ...updated[idx],
+            amount: parsed,
+            isCustomAmount: true,
+            isMinApplied: false,
+          };
+        }
+        return updated;
+      });
+    }
+    setEditingAmountIdx(null);
+    setEditingAmountVal('');
   };
 
   const updateItemQty = (index: number, newQty: number) => {
@@ -273,6 +310,7 @@ function NewEntryContent() {
         quantity: newQty,
         amount: newAmt,
         isMinApplied,
+        isCustomAmount: false,
       };
       return updated;
     });
@@ -317,6 +355,7 @@ function NewEntryContent() {
           quantity: i.quantity,
           unit_rate: i.unit_rate,
           min_charge: i.min_charge,
+          amount: i.isCustomAmount ? i.amount : undefined,
         })),
       };
 
@@ -379,10 +418,17 @@ function NewEntryContent() {
     setSelectedCustomerId(bill.customer_id);
 
     const mapped = (bill.items || []).map((bi: any) => {
-      const srv = services.find((s) => s.name === bi.service_name);
+      const srv = services.find((s) => s.id === bi.service_id || s.name === bi.service_name);
+      const calcAmt = calculateAmount({
+        pricing_type: bi.pricing_type as PricingType,
+        rate: bi.unit_rate,
+        min_charge: bi.min_charge,
+        quantity: bi.quantity,
+      });
       return {
         service_id: bi.service_id || srv?.id || '',
         category_id: bi.category_id || srv?.category_id || '',
+        category_name: srv?.category_name,
         service_name: bi.service_name,
         pricing_type: bi.pricing_type as PricingType,
         unit_rate: bi.unit_rate,
@@ -393,6 +439,7 @@ function NewEntryContent() {
           bi.pricing_type === 'PER_UNIT_MIN' &&
           bi.min_charge !== null &&
           bi.unit_rate * bi.quantity < bi.min_charge,
+        isCustomAmount: bi.amount !== calcAmt,
       };
     });
 
@@ -657,9 +704,66 @@ function NewEntryContent() {
                             {item.min_charge && ` · min ${formatINR(item.min_charge)}`}
                           </p>
                         </div>
-                        <span className="font-black text-base text-slate-900">
-                          {formatINR(item.amount)}
-                        </span>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {isAmountEditable(item) && editingAmountIdx === idx ? (
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs font-bold text-slate-500">₹</span>
+                              <input
+                                type="number"
+                                min="0"
+                                autoFocus
+                                value={editingAmountVal}
+                                onChange={(e) => setEditingAmountVal(e.target.value)}
+                                onBlur={() => commitEditAmount(idx)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    commitEditAmount(idx);
+                                  } else if (e.key === 'Escape') {
+                                    setEditingAmountIdx(null);
+                                    setEditingAmountVal('');
+                                  }
+                                }}
+                                className="w-20 h-8 px-2 text-right font-black text-sm bg-white border-2 border-sky-500 rounded-lg focus:outline-none"
+                              />
+                              <button
+                                type="button"
+                                onMouseDown={(e) => {
+                                  e.preventDefault();
+                                  commitEditAmount(idx);
+                                }}
+                                className="w-7 h-7 rounded-lg bg-sky-600 text-white flex items-center justify-center hover:bg-sky-700"
+                                title="Save amount"
+                              >
+                                <CheckCircle2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1.5">
+                              <div className="text-right">
+                                <span className="font-black text-base text-slate-900">
+                                  {formatINR(item.amount)}
+                                </span>
+                                {item.isCustomAmount && (
+                                  <span className="block text-[10px] font-bold text-sky-600 leading-none">
+                                    edited
+                                  </span>
+                                )}
+                              </div>
+                              {isAmountEditable(item) && (
+                                <button
+                                  type="button"
+                                  onClick={() => startEditAmount(idx, item.amount)}
+                                  className="w-7 h-7 rounded-lg bg-white border border-slate-200 text-slate-500 hover:text-sky-600 hover:border-sky-300 flex items-center justify-center transition-colors"
+                                  title="Edit amount"
+                                  aria-label={`Edit amount for ${item.service_name}`}
+                                >
+                                  <Edit2 className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </div>
 
                       <div className="flex items-center justify-between pt-1 border-t border-slate-200/60">
