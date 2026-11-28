@@ -111,20 +111,33 @@ export function useTailoringOrders() {
 }
 
 // 8. Expenses
-export function useExpenses(month: string, categoryId = 'all') {
+export function useExpenses(options: {
+  date?: string;
+  month?: string;
+  categoryId?: string;
+  expenseType?: string;
+}) {
+  const { date, month, categoryId = 'all', expenseType = 'all' } = options;
   return useQuery({
-    queryKey: ['expenses', month, categoryId],
+    queryKey: ['expenses', date || '', month || '', categoryId, expenseType],
     queryFn: async () => {
-      let url = `/api/expenses?month=${month}`;
-      if (categoryId !== 'all') {
-        url += `&categoryId=${categoryId}`;
-      }
-      const res = await fetch(url);
+      const params = new URLSearchParams();
+      if (date) params.set('date', date);
+      else if (month) params.set('month', month);
+      if (categoryId && categoryId !== 'all') params.set('categoryId', categoryId);
+      if (expenseType && expenseType !== 'all') params.set('expenseType', expenseType);
+
+      const res = await fetch(`/api/expenses?${params.toString()}`);
       if (!res.ok) throw new Error('Failed to fetch expenses');
       const data = await res.json();
       return {
         expenses: data.expenses || [],
         total: data.total || 0,
+        shopTotal: data.shopTotal || 0,
+        personalTotal: data.personalTotal || 0,
+        todayTotal: data.todayTotal || 0,
+        todayShopTotal: data.todayShopTotal || 0,
+        todayPersonalTotal: data.todayPersonalTotal || 0,
       };
     },
     staleTime: 1000 * 60 * 2,
