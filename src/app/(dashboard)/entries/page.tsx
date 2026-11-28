@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import {
@@ -14,6 +15,8 @@ import {
   Search,
   Receipt,
   Printer,
+  FileDown,
+  ImageDown,
   Edit2,
   Trash2,
   IndianRupee,
@@ -36,7 +39,12 @@ import { CustomDatePicker } from '@/components/ui/custom-date-picker';
 import { Modal } from '@/components/ui/modal';
 import { formatINR } from '@/lib/formatters';
 import { formatISTDisplay, formatISTDateTime, todayIST } from '@/lib/dates';
-import { useBills } from '@/lib/api-hooks';
+import { useBills, useSettings } from '@/lib/api-hooks';
+import {
+  generateReceiptPdf,
+  downloadReceiptImage,
+  DEFAULT_SHOP_ADDRESS,
+} from '@/lib/pdf/receipt-export';
 
 interface BillItem {
   id?: string;
@@ -82,6 +90,7 @@ export default function DailyEntriesPage() {
 
   // Fetch bills for selected date
   const { data: billsData, isLoading, isFetching, refetch } = useBills(selectedDate);
+  const { data: settings = {} } = useSettings();
 
   const bills = useMemo(() => {
     return ((billsData?.bills || []) as BillEntry[]);
@@ -664,11 +673,25 @@ export default function DailyEntriesPage() {
             >
               {/* Header */}
               <div className="text-center pb-3 border-b border-dashed border-slate-300">
+                <div className="w-12 h-12 mx-auto mb-2">
+                  <Image
+                    src="/logo.png"
+                    alt="Arasi Iceland & Computers"
+                    width={48}
+                    height={48}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
                 <h2 className="text-lg font-black uppercase tracking-tight text-slate-900">
-                  Arasi Iceland & Computers
+                  {settings.shop_name || 'Arasi Iceland & Computers'}
                 </h2>
-                <p className="text-xs text-slate-500 font-medium">Ice Cream Parlour & Counter POS</p>
-                <div className="mt-2 flex items-center justify-center gap-4 text-xs text-slate-600">
+                <p className="text-[11px] text-slate-500 font-medium leading-snug mt-0.5 max-w-xs mx-auto">
+                  {settings.shop_address || DEFAULT_SHOP_ADDRESS}
+                </p>
+                <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+                  Ph: {settings.shop_phone || '9942565298'}
+                </p>
+                <div className="mt-2 flex items-center justify-center gap-3 text-xs text-slate-600">
                   <span>{formatISTDisplay(receiptBill.bill_date)}</span>
                   <span>•</span>
                   <span>{formatISTDateTime(receiptBill.created_at).split(',')[1]?.trim()}</span>
@@ -742,21 +765,46 @@ export default function DailyEntriesPage() {
             </div>
 
             {/* Modal Actions */}
-            <div className="flex justify-end gap-2 pt-2">
+            <div className="flex flex-wrap items-center justify-end gap-2 pt-2">
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setReceiptBill(null)}
+                onClick={() =>
+                  downloadReceiptImage({
+                    ...receiptBill,
+                    shop_name: settings.shop_name,
+                    shop_address: settings.shop_address,
+                    shop_phone: settings.shop_phone,
+                  })
+                }
+                className="font-semibold gap-1.5"
               >
-                Close
+                <ImageDown className="w-4 h-4 text-emerald-600" />
+                <span>Download Image</span>
               </Button>
               <Button
-                className="bg-sky-600 hover:bg-sky-700 text-white font-bold gap-2"
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  generateReceiptPdf({
+                    ...receiptBill,
+                    shop_name: settings.shop_name,
+                    shop_address: settings.shop_address,
+                    shop_phone: settings.shop_phone,
+                  })
+                }
+                className="font-semibold gap-1.5"
+              >
+                <FileDown className="w-4 h-4 text-sky-600" />
+                <span>Download PDF</span>
+              </Button>
+              <Button
+                className="bg-sky-600 hover:bg-sky-700 text-white font-bold gap-1.5"
                 size="sm"
                 onClick={handlePrintReceipt}
               >
                 <Printer className="w-4 h-4" />
-                <span>Print Receipt</span>
+                <span>Print</span>
               </Button>
             </div>
           </div>
