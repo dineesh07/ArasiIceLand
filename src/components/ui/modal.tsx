@@ -101,8 +101,8 @@ export function Modal({
         onClick={(e) => e.stopPropagation()}
       >
         {(title || showCloseButton) && (
-          <div className="flex items-start justify-between border-b border-slate-100 pb-3.5 mb-4 gap-3 shrink-0">
-            <div>
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3.5 mb-4 gap-3 shrink-0">
+            <div className="min-w-0">
               {typeof title === 'string' ? (
                 <h2 className="text-xl font-bold text-slate-900 tracking-tight">{title}</h2>
               ) : (
@@ -116,10 +116,10 @@ export function Modal({
               <button
                 type="button"
                 onClick={onClose}
-                className="p-1.5 -mr-1.5 -mt-1 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors touch-target"
+                className="w-8 h-8 rounded-full bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-700 border border-red-200/70 flex items-center justify-center transition-colors shrink-0"
                 aria-label="Close modal"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             )}
           </div>

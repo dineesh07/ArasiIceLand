@@ -476,7 +476,7 @@ export default function PriceListPage() {
                 <button
                   type="button"
                   onClick={() => setInlineEditingId(null)}
-                  className="p-1 text-slate-400 hover:text-slate-600"
+                  className="p-1 rounded-full bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-700 transition-colors"
                 >
                   <X className="w-4 h-4" />
                 </button>
