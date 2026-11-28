@@ -174,11 +174,11 @@ export function CustomDatePicker({
         <div
           role="dialog"
           aria-label="Calendar picker"
-          className="absolute z-50 left-0 mt-1.5 w-76 sm:w-80 bg-white rounded-2xl border border-slate-200 shadow-2xl p-4 animate-in fade-in-50 zoom-in-95 duration-150 select-none"
+          className="absolute z-50 left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 mt-1.5 w-[296px] sm:w-80 bg-white rounded-2xl border border-slate-200 shadow-2xl p-4 animate-in fade-in-50 zoom-in-95 duration-150 select-none"
         >
           {/* Header Month / Year & Navigation */}
           <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-bold text-slate-900">
+            <span className="text-sm font-bold text-slate-900 whitespace-nowrap">
               {format(currentMonth, 'MMMM yyyy')}
             </span>
             <div className="flex items-center gap-1">
@@ -223,7 +223,7 @@ export function CustomDatePicker({
                   key={day.toISOString()}
                   type="button"
                   onClick={() => handleDaySelect(day)}
-                  className={`h-9 w-9 rounded-xl flex items-center justify-center text-xs font-semibold transition-all ${
+                  className={`h-9 w-full rounded-xl flex items-center justify-center text-xs font-semibold transition-all ${
                     isSelected
                       ? 'bg-sky-600 text-white font-bold shadow-md hover:bg-sky-700'
                       : isCurrentToday

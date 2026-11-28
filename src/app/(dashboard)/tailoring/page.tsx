@@ -499,28 +499,28 @@ export default function TailoringPage() {
         )}
 
         <form onSubmit={handleSaveOrder} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">Customer Name *</label>
-                  <Input
-                    required
-                    placeholder="e.g. Meenakshi"
-                    value={customerName}
-                    onChange={(e) => setCustomerName(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-700">Phone Number *</label>
-                  <Input
-                    required
-                    placeholder="e.g. 9840012345"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                  />
-                </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700">Customer Name *</label>
+                <Input
+                  required
+                  placeholder="e.g. Meenakshi"
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                />
               </div>
 
-              <div className="space-y-1">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700">Phone Number *</label>
+                <Input
+                  required
+                  type="tel"
+                  placeholder="e.g. 9840012345"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-1.5">
                 <label className="text-xs font-bold text-slate-700">Target Delivery Date *</label>
                 <CustomDatePicker
                   required
@@ -530,20 +530,26 @@ export default function TailoringPage() {
                 />
               </div>
 
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-700">Pick Garment Services</label>
-                <div className="flex flex-wrap gap-2">
+              <div className="space-y-1.5">
+                <label htmlFor="garment-select" className="text-xs font-bold text-slate-700">
+                  Garment Service *
+                </label>
+                <select
+                  id="garment-select"
+                  value=""
+                  onChange={(e) => {
+                    const srv = tailoringServices.find((s: any) => s.id === e.target.value);
+                    if (srv) addItemToOrder(srv);
+                  }}
+                  className="w-full h-11 rounded-xl border-2 border-slate-200 bg-white px-3.5 text-sm font-semibold text-slate-800 focus:border-sky-500 focus:outline-none transition-colors"
+                >
+                  <option value="">-- Select a garment to add --</option>
                   {tailoringServices.map((srv: any) => (
-                    <button
-                      key={srv.id}
-                      type="button"
-                      onClick={() => addItemToOrder(srv)}
-                      className="px-3 py-1.5 rounded-xl border border-slate-300 bg-slate-50 hover:bg-sky-50 hover:border-sky-400 text-xs font-bold text-slate-800 transition-colors"
-                    >
-                      + {srv.name} ({formatINR(srv.rate)})
-                    </button>
+                    <option key={srv.id} value={srv.id}>
+                      {srv.name} ({formatINR(srv.rate)})
+                    </option>
                   ))}
-                </div>
+                </select>
               </div>
 
               {selectedItems.length > 0 && (
